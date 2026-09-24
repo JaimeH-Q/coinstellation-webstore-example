@@ -1,16 +1,22 @@
 "use client";
 
 import React from "react";
-import { ShoppingBasket, Trash2 } from "lucide-react";
+import { ShoppingBasket, Trash2, Loader2 } from "lucide-react";
 import { CartItem } from "@/types/webstore";
 
 interface CartProps {
   items: CartItem[];
   onRemoveItem?: (index: number) => void;
   onCheckout?: () => void;
+  isCheckingOut?: boolean;
 }
 
-export function Cart({ items = [], onRemoveItem, onCheckout }: CartProps) {
+export function Cart({
+  items = [],
+  onRemoveItem,
+  onCheckout,
+  isCheckingOut = false,
+}: CartProps) {
   const total = items.reduce((sum, item) => sum + item.price, 0);
   const isEmpty = items.length === 0;
 
@@ -58,11 +64,18 @@ export function Cart({ items = [], onRemoveItem, onCheckout }: CartProps) {
 
       <button
         type="button"
-        disabled={isEmpty}
+        disabled={isEmpty || isCheckingOut}
         onClick={onCheckout}
-        className="mt-3.5 w-full cursor-pointer rounded-lg bg-[#2b7fff] py-2.5 text-xs sm:text-sm font-semibold text-white transition-colors hover:bg-[#1a62d6] disabled:cursor-not-allowed disabled:bg-[#2d3139] disabled:text-[#8b949e]"
+        className="mt-3.5 flex w-full items-center justify-center gap-2 cursor-pointer rounded-lg bg-[#2b7fff] py-2.5 text-xs sm:text-sm font-semibold text-white transition-colors hover:bg-[#1a62d6] disabled:cursor-not-allowed disabled:bg-[#2d3139] disabled:text-[#8b949e]"
       >
-        Procesar Pago
+        {isCheckingOut ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Generando Pago...</span>
+          </>
+        ) : (
+          <span>Procesar Pago</span>
+        )}
       </button>
     </div>
   );

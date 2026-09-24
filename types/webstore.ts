@@ -26,3 +26,23 @@ export interface DonorOfTheMonth {
   avatarUrl: string;
   message: string;
 }
+
+export interface PaymentRequestPayload {
+  destination: string;
+  amount: string;
+  currency: string;
+  description: string;
+}
+
+export interface PaymentDetails {
+  id: string;
+  memo: string;
+  uri: string;
+  qr: string;
+}
+
+export interface PaymentApiResponse {
+  payment: PaymentDetails;
+  error?: string;
+  message?: string;
+}

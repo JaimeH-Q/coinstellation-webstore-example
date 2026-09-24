@@ -13,6 +13,7 @@ interface SidebarProps {
   cartItems: CartItem[];
   onRemoveCartItem?: (index: number) => void;
   onCheckout?: () => void;
+  isCheckingOut?: boolean;
   donor?: DonorOfTheMonth;
   recentPurchases?: RecentPurchase[];
 }
@@ -23,6 +24,7 @@ export function Sidebar({
   cartItems,
   onRemoveCartItem,
   onCheckout,
+  isCheckingOut = false,
   donor,
   recentPurchases,
 }: SidebarProps) {
@@ -33,6 +35,7 @@ export function Sidebar({
         items={cartItems}
         onRemoveItem={onRemoveCartItem}
         onCheckout={onCheckout}
+        isCheckingOut={isCheckingOut}
       />
       <DonorCard donor={donor} />
       <RecentPurchases purchases={recentPurchases} />
