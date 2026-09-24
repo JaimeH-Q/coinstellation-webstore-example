@@ -1,69 +1,142 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+import { Tag, Clock } from "lucide-react";
+import {
+  Topbar,
+  HeaderBanner,
+  ProductSection,
+  AboutSection,
+  Sidebar,
+  ProductModal,
+  Footer,
+} from "@/components";
+import {
+  PERMANENT_PRODUCTS,
+  TEMPORARY_PRODUCTS,
+  RECENT_PURCHASES,
+  DONOR_OF_THE_MONTH,
+} from "@/data/mock-data";
+import { Product, CartItem } from "@/types/webstore";
+
+export default function WebstorePage() {
+  const [currency, setCurrency] = useState("USD");
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("rangos-permanentes");
+
+  // Añadir producto al carrito
+  const handleAddToCart = (product: Product) => {
+    setCartItems((prev) => [
+      ...prev,
+      {
+        id: `${product.id}-${Date.now()}`,
+        name: product.name,
+        price: product.price,
+      },
+    ]);
+  };
+
+  // Eliminar producto del carrito
+  const handleRemoveFromCart = (index: number) => {
+    setCartItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Abrir modal de detalles del producto
+  const handleOpenInfo = (product: Product) => {
+    setActiveModalProduct(product);
+    setIsModalOpen(true);
+  };
+
+  // Cerrar modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setActiveModalProduct(null);
+  };
+
+  // Navegación suave entre secciones
+  const handleNavigate = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Simular checkout
+  const handleCheckout = () => {
+    alert("Redirigiendo a la pasarela de pagos segura...");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <div className="flex min-h-screen flex-col">
+      {/* Topbar */}
+      <Topbar
+        selectedCurrency={currency}
+        onCurrencyChange={setCurrency}
+        username="Invitado"
+        onLoginClick={() => alert("Iniciar sesión")}
+      />
+
+      {/* Hero Header con IP y Discord */}
+      <HeaderBanner
+        title="CRAFTNETWORK"
+        subtitle="TIENDA OFICIAL"
+        serverIp="PLAY.CRAFTNETWORK.NET"
+        discordHandle="DISCORD.GG/CRAFT"
+        discordUrl="https://discord.gg/craft"
+      />
+
+      {/* Contenedor Principal */}
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
+          {/* Columna Izquierda: Secciones de Productos & Info */}
+          <main className="flex flex-col gap-6">
+            <ProductSection
+              id="rangos-permanentes"
+              title="Rangos Permanentes"
+              icon={<Tag className="h-4 w-4 text-[#2b7fff]" />}
+              products={PERMANENT_PRODUCTS}
+              onOpenInfo={handleOpenInfo}
+              onAddToCart={handleAddToCart}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <ProductSection
+              id="rangos-temporales"
+              title="Rangos Temporales"
+              icon={<Clock className="h-4 w-4 text-[#2b7fff]" />}
+              products={TEMPORARY_PRODUCTS}
+              onOpenInfo={handleOpenInfo}
+              onAddToCart={handleAddToCart}
+            />
+
+            <AboutSection id="about-section" serverName="CraftNetwork" />
+          </main>
+
+          {/* Columna Derecha: Sidebar (Nav, Carrito, Donador, Recientes) */}
+          <Sidebar
+            activeSection={activeSection}
+            onNavigate={handleNavigate}
+            cartItems={cartItems}
+            onRemoveCartItem={handleRemoveFromCart}
+            onCheckout={handleCheckout}
+            donor={DONOR_OF_THE_MONTH}
+            recentPurchases={RECENT_PURCHASES}
+          />
         </div>
-      </main>
+      </div>
+
+      {/* Modal de Producto */}
+      <ProductModal
+        isOpen={isModalOpen}
+        product={activeModalProduct}
+        onClose={handleCloseModal}
+        onAddToCart={handleAddToCart}
+      />
+
+      {/* Footer */}
+      <Footer serverName="CraftNetwork" year={2026} />
     </div>
   );
 }
