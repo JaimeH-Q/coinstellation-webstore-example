@@ -17,9 +17,9 @@
  */
 export const COINSTELLATION_PACKAGE_IDS: Record<string, string> = {
   // Rangos
-  "rank-vip": "",
-  "rank-mvp-plus": "",
-  "rank-netherite-god": "",
+  "rank-vip": "679fc7ac-42b7-49bd-92ab-6498ad2ce82f",
+  "rank-mvp-plus": "679fc7ac-42b7-49bd-92ab-6498ad2ce82f",
+  "rank-netherite-god": "679fc7ac-42b7-49bd-92ab-6498ad2ce82f",
 
   // Llaves & crates
   "crate-cosmic-pack5": "",

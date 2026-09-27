@@ -23,15 +23,7 @@ import { isValidPlayerName } from "@/lib/player-name";
 export default function WebstorePage() {
   const [currency] = useState("USDC");
   const [username, setUsername] = useState("Notch");
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "demo-1",
-      productId: "rank-mvp-plus",
-      name: "Rango MVP+ MASTER",
-      price: 14.99,
-      rarity: "legendary",
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
