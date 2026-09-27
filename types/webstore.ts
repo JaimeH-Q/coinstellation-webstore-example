@@ -68,24 +68,20 @@ export interface CryptoRate {
   isCrypto: boolean;
 }
 
-export interface PaymentRequestPayload {
-  destination: string;
-  amount: string;
-  currency: string;
-  description: string;
-  packageId?: string;
-}
-
+/** Datos de un cobro creado en Coinstellation, listos para mostrar al comprador. */
 export interface PaymentDetails {
+  /** ID del pago en Coinstellation (se usa para consultar su estado). */
   id: string;
+  /** Monto exacto a pagar, definido por el paquete en Coinstellation. */
+  amount: string;
+  /** Activo del pago: "XLM" o "USDC". */
+  asset: string;
+  /** Wallet que recibe el pago. */
+  destination: string;
+  /** MEMO_ID obligatorio: identifica este pago en la blockchain. */
   memo: string;
+  /** Enlace SEP-7 (web+stellar:pay?...) con destino, monto, activo y memo. */
   uri: string;
+  /** QR del enlace de pago (data URL). */
   qr: string;
-}
-
-export interface PaymentApiResponse {
-  payment: PaymentDetails;
-  error?: string;
-  message?: string;
-  record?: any;
 }

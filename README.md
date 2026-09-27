@@ -15,8 +15,8 @@ Este repositorio es una **tienda web de demostración (Webstore)** construida pa
 - [1. Visión General del Ecosistema Coinstellation](#1-visión-general-del-ecosistema-coinstellation)
 - [2. Arquitectura del Repositorio](#2-arquitectura-del-repositorio)
 - [3. Flujo Integral de Compra y Pagos (Stellar)](#3-flujo-integral-de-compra-y-pagos-stellar)
-- [4. Especificación Técnica de la API](#4-especificación-técnica-de-la-api)
-- [5. Configuración y Variables de Entorno](#5-configuración-y-variables-de-entorno)
+- [4. API de Coinstellation que usa la tienda](#4-api-de-coinstellation-que-usa-la-tienda)
+- [5. Configuración](#5-configuración)
 - [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
 - [7. Guía Rápida para Modelos de IA (AI Context Guide)](#7-guía-rápida-para-modelos-de-ia-ai-context-guide)
 
@@ -42,7 +42,7 @@ flowchart LR
    - Se aprovisiona una instancia basada en este repositorio con la configuración, branding y productos del cliente.
 3. **Gestión de Ventas y Pagos**:
    - Cada tienda web se comunica de forma autenticada con el backend de Coinstellation usando una clave única de tienda (`X-Store-Key`).
-   - Los clientes finales pagan con XLM escaneando un código QR o abriendo su billetera Stellar (ej. Freighter o Lobstr) con un `memo` identificador de orden.
+   - Los clientes finales pagan con XLM o USDC escaneando un código QR o abriendo su billetera Stellar (ej. Freighter o Lobstr) con un `memo` identificador de orden.
 
 ---
 
@@ -74,15 +74,21 @@ coinstellation-webstore-example/
 │   ├── product-modal.tsx               # Modal de detalles de producto
 │   ├── product-section.tsx             # Grilla de productos por categoría
 │   └── topbar.tsx                      # Barra superior (moneda, autenticación)
+├── 📁 app/api/checkout/                # 🔒 Rutas del SERVIDOR de la tienda (usan la API key)
+│   ├── route.ts                        # POST: crea el cobro del paquete en Coinstellation
+│   └── [paymentId]/route.ts            # GET: estado del pago (lo consulta el modal)
 ├── 📁 data/
-│   └── mock-data.ts                    # Catálogo demo (rangos permanentes y temporales)
+│   ├── mock-data.ts                    # Catálogo de la tienda (nombres, precios de vitrina, íconos)
+│   └── coinstellation-packages.ts      # 📍 ID del paquete de Coinstellation de cada producto
 ├── 📁 lib/
-│   ├── payment-config.ts               # 📍 CONFIGURACIÓN: URL externa, Store Key y Wallet
-│   └── payment-service.ts              # Cliente para invocar la API de pagos
+│   ├── coinstellation-server.ts        # 🔒 Cliente de la API de Coinstellation (solo servidor)
+│   ├── checkout-client.ts              # Navegador → rutas /api/checkout de la tienda
+│   ├── copy-text.ts                    # Copiar al portapapeles (también por HTTP)
+│   └── player-name.ts                  # Validación del nombre de jugador
 ├── 📁 types/
 │   └── webstore.ts                     # Definiciones TypeScript de productos, carrito y pagos
-├── .env.example                        # Plantilla de variables de entorno
-├── .env.local                          # Variables locales (no commiteado)
+├── .env.example                        # 📍 Plantilla de variables de entorno
+├── .env.local                          # Tus variables (no se sube a git)
 └── package.json                        # Dependencias y scripts
 ```
 
@@ -90,179 +96,128 @@ coinstellation-webstore-example/
 
 | Componente / Archivo | Tipo | Responsabilidad Principal |
 | :--- | :--- | :--- |
-| `app/page.tsx` | Client Component | Orquestador principal: estado del carrito, modal de producto y modal de pago. |
-| `components/sidebar/cart.tsx` | Client Component | Muestra los ítems agregados, cálculo del total y dispara el evento de checkout. |
-| `components/payment-modal.tsx` | Client Component | Renderiza el QR de pago Stellar, campo de **Memo obligatorio** y enlace `web+stellar:pay`. |
-| `lib/payment-service.ts` | SDK Service | Cliente directo de Coinstellation (`Coinstellation`) con `checkout.process` y `checkout.validate`. |
-| `lib/payment-config.ts` | Config Module | Centraliza las credenciales de la Sección API del Dashboard (`cs_live_99`, URL base y wallet). |
+| `app/page.tsx` | Client Component | Estado del carrito y del jugador; inicia el checkout (un ítem por pago). |
+| `components/payment-modal.tsx` | Client Component | QR, enlace `web+stellar:pay`, memo obligatorio y **consulta del estado** hasta que el pago se confirma. |
+| `app/api/checkout/*` | Route Handlers | Llaman a Coinstellation **desde el servidor** con la API key de `.env.local`. |
+| `data/coinstellation-packages.ts` | Config | Vincula cada producto de la tienda con un paquete creado en el panel. |
 
 ---
 
 ## 3. Flujo Integral de Compra y Pagos (Stellar)
 
-La tienda web se conecta directamente con la API de Coinstellation según las especificaciones de la **Sección API del Dashboard**:
+La API key de Coinstellation **nunca llega al navegador**: el navegador habla con las rutas `/api/checkout` de la propia tienda, y esas rutas llaman a Coinstellation.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Comprador as 🛒 Comprador (Navegador)
-    participant UI as 🛍️ Webstore (Next.js Frontend)
-    participant Coinstellation as 🪐 Coinstellation Gateway (Dashboard API)
-    actor Wallet as 💳 Billetera Stellar (Freighter/Lobstr)
+    participant Tienda as 🛍️ Webstore (servidor Next.js)
+    participant Coinstellation as 🪐 Coinstellation
+    actor Wallet as 💳 Wallet Stellar
+    participant MC as ⛏️ Servidor de Minecraft (plugin)
 
-    Comprador->>UI: Añade productos al carrito y pulsa "Pagar con Tarjeta o Web3"
-    UI->>Coinstellation: POST /api/payments/create (con X-Store-Key: cs_live_99)
-    Coinstellation-->>UI: Retorna { payment: { id, memo, uri, qr } }
-    UI->>Comprador: Abre PaymentModal con Código QR y Memo obligatorio
-    alt Opción A: Escanear QR
-        Comprador->>Wallet: Escanea código QR desde su celular
-    else Opción B: Enlace directo
-        Comprador->>Wallet: Clic en "Abrir en Billetera Stellar" (web+stellar:pay)
+    Comprador->>Tienda: POST /api/checkout { productId, playerName }
+    Tienda->>Coinstellation: POST /api/payments/create (X-Store-Key) { packageId, playerName, destination }
+    Coinstellation-->>Tienda: { payment: { id, amount, asset, memo, uri, qr } }
+    Tienda-->>Comprador: Modal con QR, monto y memo
+    Comprador->>Wallet: Escanea el QR / abre el enlace de pago
+    Wallet->>Coinstellation: Pago en Stellar con el memo del pedido
+    Note over Coinstellation: Detecta el pago en la blockchain (≤ 1 min)<br/>y lo marca como completado
+    loop Cada 5 s
+        Comprador->>Tienda: GET /api/checkout/{id}
+        Tienda->>Coinstellation: GET /api/payments
     end
-    Wallet->>Coinstellation: Transacción firmada en la red Stellar con el Memo exacto
-    UI->>Coinstellation: POST /api/payments/{id}/validate con txHash
-    Coinstellation-->>UI: Confirmación de pago exitosa (se refleja en el Dashboard)
+    Tienda-->>Comprador: ¡Pago recibido!
+    MC->>Coinstellation: GET /api/plugin/commands → ejecuta los comandos del paquete
 ```
 
 ---
 
-## 4. Especificación Técnica de la API
+## 4. API de Coinstellation que usa la tienda
 
-### Petición Externa (`POST /api/payments/create`)
+Todas las llamadas llevan el header `X-Store-Key: <tu API key>` y se hacen desde el servidor.
 
-El servidor externo de Coinstellation espera la siguiente estructura:
+### `POST /api/payments/create`
 
-#### Headers Requeridos
-```http
-Content-Type: application/json
-X-Store-Key: tu_clave_de_webstore
-```
-
-#### Body (JSON)
 ```json
 {
-  "destination": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-  "amount": "24.99",
-  "currency": "XLM",
-  "description": "Orden #1001"
+  "packageId": "ID del paquete en Coinstellation",
+  "playerName": "Steve",
+  "destination": "G… (tu wallet pública)",
+  "reference": "rank-vip:Steve"
 }
 ```
 
-| Campo | Tipo | Requerido | Descripción |
-| :--- | :--- | :---: | :--- |
-| `destination` | `string` | Sí | Clave pública (G...) de la billetera Stellar donde el creador recibe los fondos. |
-| `amount` | `string` | Sí | Monto a cobrar con formato decimal (ej: `"24.99"`). |
-| `currency` | `string` | Sí | Criptomoneda de cobro (por defecto `"XLM"`). |
-| `description` | `string` | Opcional | Etiqueta o identificador de orden visible para el comprador. |
+- El **monto y el activo** (XLM o USDC) los define el paquete en Coinstellation; no se envían.
+- `playerName`: letras, números, `_` y `.` (máx. 32). Reemplaza `%p%` en los comandos del paquete.
+- Respuesta `201`: `{ payment: { id, amount, asset, destination, memo, uri, qr } }` (`asset` es `"native"` para XLM).
+- Errores: `401` API key inválida · `404` paquete inexistente · `422` datos inválidos · `502/503` Cosmos no disponible.
 
-#### Respuesta Exitosa (200 OK)
-```json
-{
-  "payment": {
-    "id": "pay_987654321",
-    "memo": "1727182345123",
-    "uri": "web+stellar:pay?destination=GBBD...&amount=24.99&asset_code=XLM&memo=1727182345123&memo_type=MEMO_TEXT",
-    "qr": "data:image/png;base64,iVBORw0KGgo..."
-  }
-}
-```
+### `GET /api/payments?count=200`
 
-| Campo | Tipo | Utilidad en la UI |
-| :--- | :--- | :--- |
-| `payment.id` | `string` | Identificador único de la transacción en el sistema Coinstellation. |
-| `payment.memo` | `string` | **Memo obligatorio** en Stellar para asociar la transferencia al pedido. |
-| `payment.uri` | `string` | Enlace compatible con el protocolo `web+stellar:pay` para billeteras. |
-| `payment.qr` | `string` | Imagen del código QR (soporta Base64, data-URI, URL o SVG). |
+Lista los pagos de la cuenta. La tienda busca el suyo por `cosmosIntentId === payment.id` y lee `status`: `pending`, `processing`, `completed`, `failed`, `cancelled` o `expired`.
 
 ---
 
-## 5. Configuración y Variables de Entorno
+## 5. Configuración
 
-### Dónde colocar la URL de tu API externa
+### Variables de entorno (`.env.local`)
 
-Tienes dos opciones según tu flujo de trabajo:
+Copia `.env.example` a `.env.local` y completa:
 
-#### Opción 1: Archivo `.env.local` (Recomendado)
-Copia [.env.example](file:///.env.example) a `.env.local`:
 ```env
-# URL base de tu backend / servidor de pagos de Coinstellation
-COINSTELLATION_API_URL=https://api.tu-servicio-coinstellation.com
+# URL del servidor de Coinstellation (Dashboard → API → "Endpoint Base")
+COINSTELLATION_API_URL=http://129.151.100.83:25571
 
-# Clave de autenticación de tu tienda (para el header X-Store-Key)
-COINSTELLATION_STORE_KEY=tu_clave_secreta_de_tienda
+# API key de tu cuenta (Dashboard → API → "Generar API key")
+COINSTELLATION_API_KEY=cs_live_...
 
-# Wallet Stellar (G...) del creador que recibirá los pagos
-COINSTELLATION_DESTINATION_WALLET=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-
-# (Opcional) Activar modo simulación para pruebas en local sin backend
-COINSTELLATION_ENABLE_MOCK=false
+# Tu wallet pública de Stellar (Dashboard → Billetera)
+COINSTELLATION_WALLET=G...
 ```
 
-#### Opción 2: Archivo [lib/payment-config.ts](file:///lib/payment-config.ts)
-Si prefieres definir las constantes directamente en código TypeScript:
-```typescript
-export const EXTERNAL_PAYMENTS_API_URL = "https://api.tu-servicio-coinstellation.com";
-export const STORE_KEY = "tu_clave_secreta_de_tienda";
-export const DEFAULT_DESTINATION_WALLET = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
-```
+> [!WARNING]
+> No renombres estas variables a `NEXT_PUBLIC_*`: la API key quedaría expuesta en el navegador.
 
-> [!TIP]
-> Si aún no has desplegado tu servidor de pagos externo, puedes activar `ENABLE_MOCK_PAYMENT = true` en [lib/payment-config.ts](file:///lib/payment-config.ts) para probar todo el flujo visual y el modal de pago inmediatamente en tu máquina.
+### Vincular productos con paquetes (`data/coinstellation-packages.ts`)
+
+1. Crea el paquete en el panel (Dashboard → Paquetes), con su precio, activo y comandos.
+2. Copia su ID (Dashboard → API → elige el paquete en "Simular pago" y copia el `packageId`).
+3. Pégalo en la línea del producto correspondiente:
+   ```ts
+   "rank-vip": "a1b2c3d4-…",
+   ```
+
+Un producto sin ID no se puede comprar: la tienda lo avisa al intentar pagarlo.
 
 ---
 
 ## 6. Puesta en Marcha Local
 
-### Requisitos previos
-- Node.js 18.18+ o superior
-- npm, yarn o pnpm
-
-### Pasos de instalación
-
 1. **Instalar dependencias**:
    ```bash
    npm install
    ```
-
-2. **Configurar el entorno**:
-   ```bash
-   cp .env.example .env.local
-   ```
-   *(Modifica `.env.local` con tu URL y Store Key)*
-
-3. **Conexión con el Sistema Principal (coinstellation-frontend)**:
-   - Asegúrate de que `coinstellation-frontend` esté corriendo en el puerto 3000 (`http://localhost:3000`).
-   - En tu archivo `.env.local`:
-     ```env
-     COINSTELLATION_API_URL=http://localhost:3000
-     COINSTELLATION_STORE_KEY=tu_clave_de_webstore
-     COINSTELLATION_DESTINATION_WALLET=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-     ```
-
-4. **Ejecutar la Webstore en desarrollo**:
+2. **Configurar** `.env.local` y `data/coinstellation-packages.ts` (sección 5).
+3. **Ejecutar la tienda**:
    ```bash
    npm run dev
    ```
-   La tienda web estará disponible en [http://localhost:3001](http://localhost:3001).
-
-5. **Flujo de Prueba de Venta en Vivo**:
-   - Agrega cualquier producto al carrito (ej. Rango Titan) y presiona **"Procesar Pago"**.
-   - Se abrirá el modal con el código QR, Memo y monto en XLM generado directamente por Coinstellation.
-   - Presiona **"Confirmar Pago (Efectuar Venta)"** para simular la confirmación on-chain con un txHash.
-   - Haz clic en **"Ver Venta en el Dashboard"** (o ve a [http://localhost:3000/dashboard](http://localhost:3000/dashboard)).
-   - Verás la venta reflejada inmediatamente en los **Ingresos Netos**, **Pedidos Totales**, **Gráficos** y en el **Historial de Pagos** como `Completado`.
+   Disponible en [http://localhost:3001](http://localhost:3001).
+4. **Probar una compra**:
+   - Configura tu nombre de jugador (arriba a la derecha) y agrega un producto vinculado al carrito.
+   - Pulsa **"Pagar con Tarjeta o Web3"**: se abre el modal con el QR, el monto y el memo.
+   - Paga desde una wallet Stellar (en testnet si tu API key es `dv_`). El modal pasa solo a **"¡Pago recibido!"** cuando Coinstellation confirma el pago.
+   - El pago aparece como `Completado` en el Historial de pagos del panel, y los comandos del paquete quedan en la cola del plugin del servidor.
 
 ---
 
 ## 7. Guía Rápida para Modelos de IA (AI Context Guide)
 
-Para cualquier agente o LLM que trabaje sobre este repositorio, estas son las reglas y contratos clave:
-
-- **Propósito**: Webstore plantilla para clientes de Coinstellation conectada directamente a la pasarela de pagos Coinstellation.
-- **Entrypoint UI**: [app/page.tsx](file:///app/page.tsx) gestiona el estado principal (`cartItems`, `paymentDetails`, `isPaymentModalOpen`).
-- **Punto de integración**: [lib/payment-service.ts](file:///lib/payment-service.ts) conecta directamente con la API de Coinstellation (`/api/payments/create` y `/api/payments/{id}/validate`).
-- **Credenciales & Headers**: Header `X-Store-Key: cs_live_99` o `Authorization: Bearer cs_live_99` según la Sección API del Dashboard.
-- **Estructura de respuesta**: Toda respuesta válida contiene `{ payment: { id, memo, uri, qr } }`.
+- **Propósito**: tienda de ejemplo integrada con Coinstellation (pagos en Stellar + entrega de comandos en Minecraft).
+- **Seguridad**: la API key solo se usa en `lib/coinstellation-server.ts` (route handlers). Nunca importarlo desde componentes cliente ni exponer variables `NEXT_PUBLIC_*` con credenciales.
+- **Checkout**: `app/page.tsx` → `lib/checkout-client.ts` → `app/api/checkout` → Coinstellation. Un pago por ítem del carrito.
+- **Confirmación**: nunca simular ni inventar hashes de transacción; el estado real se lee con `GET /api/checkout/{id}`.
 - **Estilos**: Tailwind CSS v4 con variables CSS personalizadas en [app/globals.css](file:///app/globals.css).
 
 ---

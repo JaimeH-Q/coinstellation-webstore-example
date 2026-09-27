@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Shield, Package, Flame, Zap, Sparkles, Gem, Check, AlertCircle, X as CloseIcon } from "lucide-react";
 import {
   Topbar,
@@ -15,12 +15,10 @@ import {
   CrateSimulatorModal,
   PlayerConnectModal,
 } from "@/components";
-import {
-  ALL_PRODUCTS,
-  CRYPTO_RATES,
-} from "@/data/mock-data";
+import { ALL_PRODUCTS } from "@/data/mock-data";
 import { Product, CartItem, PaymentDetails } from "@/types/webstore";
-import { createPayment } from "@/lib/payment-service";
+import { startCheckout } from "@/lib/checkout-client";
+import { isValidPlayerName } from "@/lib/player-name";
 
 export default function WebstorePage() {
   const [currency, setCurrency] = useState("USD");
@@ -28,6 +26,7 @@ export default function WebstorePage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "demo-1",
+      productId: "rank-mvp-plus",
       name: "Rango MVP+ COIN-MASTER",
       price: 14.99,
       rarity: "legendary",
@@ -48,7 +47,10 @@ export default function WebstorePage() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  // Ítem del carrito que se está pagando (se quita cuando Coinstellation confirma el pago)
+  const [payingItemId, setPayingItemId] = useState<string | null>(null);
+  const [payingProductName, setPayingProductName] = useState<string>("");
+  const [payingPlayer, setPayingPlayer] = useState<string>("");
 
   // Active section for sidebar highlights
   const [activeSection, setActiveSection] = useState("ranks");
@@ -124,46 +126,55 @@ export default function WebstorePage() {
     }
   };
 
-  // Checkout Handler: Coinstellation / Stellar Payment Integration
+  // Checkout con Coinstellation: cada pago cubre un paquete, así que el carrito se paga
+  // de a un ítem. El monto y el activo los define el paquete vinculado en Coinstellation.
   const handleCheckout = async () => {
-    if (cartItems.length === 0) return;
-    const rateInfo = CRYPTO_RATES[currency] || CRYPTO_RATES.USD;
-    const total = cartItems.reduce((acc, item) => acc + item.price, 0);
-    const convertedTotal = total * rateInfo.ratePerUSD;
+    const item = cartItems[0];
+    if (!item) return;
 
-    setIsCheckingOut(true);
     setCheckoutError(null);
 
+    if (!item.productId) {
+      setCheckoutError(`"${item.name}" no corresponde a ningún producto de la tienda y no se puede pagar.`);
+      return;
+    }
+
+    const playerName = username.trim();
+    if (!isValidPlayerName(playerName)) {
+      setCheckoutError(
+        "Configura tu nombre de jugador de Minecraft (solo letras, números, _ y .) para recibir la compra.",
+      );
+      setIsPlayerModalOpen(true);
+      return;
+    }
+
+    setIsCheckingOut(true);
+
     try {
-      const orderNumber = Math.floor(1000 + Math.random() * 9000);
-      const primaryItem = cartItems[0]?.name || "Ítems";
-      const description = `Orden #${orderNumber} de ${username} (${cartItems.length} ítems - ${primaryItem})`;
-      const packageId = primaryItem.toLowerCase().includes("vip")
-        ? "package-basic"
-        : primaryItem.toLowerCase().includes("titan")
-        ? "package-pro"
-        : "package-enterprise";
-
-      const res = await createPayment({
-        amount: total.toFixed(2),
-        currency: "XLM",
-        description,
-        packageId,
-      });
-
-      if (res && res.payment) {
-        setPaymentAmount(total);
-        setPaymentDetails(res.payment);
-        setIsPaymentModalOpen(true);
-      } else {
-        throw new Error("Respuesta inválida de la pasarela de pagos.");
-      }
-    } catch (err: any) {
-      console.warn("API de pagos Coinstellation:", err);
-      setCheckoutError(err.message || "Error al procesar el pago con Coinstellation");
+      const { payment, productName } = await startCheckout(item.productId, playerName);
+      setPayingItemId(item.id);
+      setPayingProductName(productName);
+      setPayingPlayer(playerName);
+      setPaymentDetails(payment);
+      setIsPaymentModalOpen(true);
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : "Error al procesar el pago con Coinstellation.");
     } finally {
       setIsCheckingOut(false);
     }
+  };
+
+  // Coinstellation confirmó el pago: el ítem sale del carrito.
+  const handlePaymentSuccess = useCallback(() => {
+    setCartItems((prev) => prev.filter((cartItem) => cartItem.id !== payingItemId));
+    showToast(`¡Pago confirmado! ${payingProductName} se entregará a ${payingPlayer}.`);
+  }, [payingItemId, payingProductName, payingPlayer]);
+
+  const handleClosePayment = useCallback(() => setIsPaymentModalOpen(false), []);
+
+  const handlePayNext = () => {
+    setIsPaymentModalOpen(false);
+    void handleCheckout();
   };
 
   return (
@@ -341,17 +352,17 @@ export default function WebstorePage() {
         onSavePlayer={handleSavePlayer}
       />
 
-      {/* Modal de Pago Stellar / Coinstellation */}
+      {/* Modal de Pago Stellar / Coinstellation (key: se reinicia con cada pago) */}
       <PaymentModal
+        key={paymentDetails?.id ?? "sin-pago"}
         isOpen={isPaymentModalOpen}
         payment={paymentDetails}
-        amount={paymentAmount.toFixed(2)}
-        currency="XLM"
-        description="Orden de compra en CraftNetwork"
-        onClose={() => setIsPaymentModalOpen(false)}
-        onPaymentSuccess={() => {
-          setCartItems([]);
-        }}
+        productName={payingProductName}
+        playerName={payingPlayer}
+        remainingItems={cartItems.filter((cartItem) => cartItem.id !== payingItemId).length}
+        onClose={handleClosePayment}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPayNext={handlePayNext}
       />
 
       {/* Footer */}
