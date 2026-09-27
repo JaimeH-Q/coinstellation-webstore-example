@@ -3,44 +3,42 @@
 import React from "react";
 import { NavigationMenu } from "./navigation-menu";
 import { Cart } from "./cart";
-import { DonorCard } from "./donor-card";
-import { RecentPurchases } from "./recent-purchases";
-import { CartItem, DonorOfTheMonth, RecentPurchase } from "@/types/webstore";
+import { CartItem } from "@/types/webstore";
 
 interface SidebarProps {
   activeSection?: string;
   onNavigate?: (id: string) => void;
   cartItems: CartItem[];
+  selectedCurrency?: string;
+  username?: string;
   onRemoveCartItem?: (index: number) => void;
   onCheckout?: () => void;
   isCheckingOut?: boolean;
-  donor?: DonorOfTheMonth;
-  recentPurchases?: RecentPurchase[];
 }
 
 export function Sidebar({
   activeSection,
   onNavigate,
   cartItems,
+  selectedCurrency = "USD",
+  username = "Invitado",
   onRemoveCartItem,
   onCheckout,
   isCheckingOut = false,
-  donor,
-  recentPurchases,
 }: SidebarProps) {
   return (
-    <aside className="flex flex-col gap-5">
-      <NavigationMenu activeSection={activeSection} onNavigate={onNavigate} />
+    <aside className="flex flex-col gap-5 sticky top-16">
       <Cart
         items={cartItems}
+        selectedCurrency={selectedCurrency}
+        username={username}
         onRemoveItem={onRemoveCartItem}
         onCheckout={onCheckout}
         isCheckingOut={isCheckingOut}
       />
-      <DonorCard donor={donor} />
-      <RecentPurchases purchases={recentPurchases} />
+      <NavigationMenu activeSection={activeSection} onNavigate={onNavigate} />
     </aside>
   );
 }
 
-export { NavigationMenu, Cart, DonorCard, RecentPurchases };
+export { NavigationMenu, Cart };
