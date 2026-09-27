@@ -36,7 +36,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Web3 Gaming Scrollbar */
+/* Custom Gaming Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -142,7 +142,7 @@ body {
   animation-play-state: paused;
 }
 
-/* Web3 Glassmorphic Glows */
+/* Glassmorphic Glows */
 .glass-panel {
   background: rgba(15, 18, 28, 0.7);
   backdrop-filter: blur(14px);

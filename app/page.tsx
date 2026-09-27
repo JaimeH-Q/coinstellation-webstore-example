@@ -17,18 +17,18 @@ import {
 } from "@/components";
 import {
   ALL_PRODUCTS,
-  CRYPTO_RATES,
+  CURRENCY_RATES,
 } from "@/data/mock-data";
 import { Product, CartItem, PaymentDetails } from "@/types/webstore";
 import { createPayment } from "@/lib/payment-service";
 
 export default function WebstorePage() {
-  const [currency, setCurrency] = useState("USD");
+  const [currency] = useState("USDC");
   const [username, setUsername] = useState("Notch");
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "demo-1",
-      name: "Rango MVP+ COIN-MASTER",
+      name: "Rango MVP+ MASTER",
       price: 14.99,
       rarity: "legendary",
     },
@@ -43,7 +43,7 @@ export default function WebstorePage() {
   // Player Profile Modal State
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
-  // Stellar / Coinstellation Payment Modal State
+  // Payment Modal State
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -124,12 +124,12 @@ export default function WebstorePage() {
     }
   };
 
-  // Checkout Handler: Coinstellation / Stellar Payment Integration
+  // Checkout Handler: Payment Integration (USDC)
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
-    const rateInfo = CRYPTO_RATES[currency] || CRYPTO_RATES.USD;
+    const rateInfo = CURRENCY_RATES[currency] || CURRENCY_RATES.USDC;
     const total = cartItems.reduce((acc, item) => acc + item.price, 0);
-    const convertedTotal = total * rateInfo.ratePerUSD;
+    const convertedTotal = total * (rateInfo?.ratePerUSD ?? 1);
 
     setIsCheckingOut(true);
     setCheckoutError(null);
@@ -145,22 +145,22 @@ export default function WebstorePage() {
         : "package-enterprise";
 
       const res = await createPayment({
-        amount: total.toFixed(2),
-        currency: "XLM",
+        amount: convertedTotal.toFixed(2),
+        currency: "USDC",
         description,
         packageId,
       });
 
       if (res && res.payment) {
-        setPaymentAmount(total);
+        setPaymentAmount(convertedTotal);
         setPaymentDetails(res.payment);
         setIsPaymentModalOpen(true);
       } else {
         throw new Error("Respuesta inválida de la pasarela de pagos.");
       }
     } catch (err: any) {
-      console.warn("API de pagos Coinstellation:", err);
-      setCheckoutError(err.message || "Error al procesar el pago con Coinstellation");
+      console.warn("Pasarela de pagos:", err);
+      setCheckoutError(err.message || "Error al procesar el pago");
     } finally {
       setIsCheckingOut(false);
     }
@@ -181,10 +181,9 @@ export default function WebstorePage() {
         </div>
       )}
 
-      {/* Topbar: Nav, Multi-Currency Selector, Player Skin Profile */}
+      {/* Topbar: Nav, USDC Badge, Player Skin Profile */}
       <Topbar
         selectedCurrency={currency}
-        onCurrencyChange={setCurrency}
         username={username}
         onLoginClick={() => setIsPlayerModalOpen(true)}
       />
@@ -287,10 +286,10 @@ export default function WebstorePage() {
               onAddToCart={handleAddToCart}
             />
 
-            {/* 6. GEMAS & TOKENS */}
+            {/* 6. GEMAS & MONEDAS */}
             <ProductSection
               id="coins"
-              title="Gemas de Red & Tokens Web3"
+              title="Gemas & Monedas de Red"
               subtitle="Moneda para la casa de subastas in-game y Black Market"
               icon={<Gem className="h-5 w-5 text-teal-400" />}
               products={coinProducts}
@@ -341,12 +340,12 @@ export default function WebstorePage() {
         onSavePlayer={handleSavePlayer}
       />
 
-      {/* Modal de Pago Stellar / Coinstellation */}
+      {/* Modal de Pago */}
       <PaymentModal
         isOpen={isPaymentModalOpen}
         payment={paymentDetails}
         amount={paymentAmount.toFixed(2)}
-        currency="XLM"
+        currency="USDC"
         description="Orden de compra en CraftNetwork"
         onClose={() => setIsPaymentModalOpen(false)}
         onPaymentSuccess={() => {
