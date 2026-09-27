@@ -93,30 +93,26 @@ coinstellation-webstore-example/
 | `app/page.tsx` | Client Component | Orquestador principal: estado del carrito, modal de producto y modal de pago. |
 | `components/sidebar/cart.tsx` | Client Component | Muestra los ítems agregados, cálculo del total y dispara el evento de checkout. |
 | `components/payment-modal.tsx` | Client Component | Renderiza el QR de pago Stellar, campo de **Memo obligatorio** y enlace `web+stellar:pay`. |
-| `app/api/payments/create/route.ts` | Server Route Handler | Proxy seguro que inyecta la `X-Store-Key` y reenvía el cobro al servidor externo. |
-| `lib/payment-config.ts` | Config Module | Centraliza la URL externa de Coinstellation, la wallet del creador y las credenciales. |
+| `lib/payment-service.ts` | SDK Service | Cliente directo de Coinstellation (`Coinstellation`) con `checkout.process` y `checkout.validate`. |
+| `lib/payment-config.ts` | Config Module | Centraliza las credenciales de la Sección API del Dashboard (`cs_live_99`, URL base y wallet). |
 
 ---
 
 ## 3. Flujo Integral de Compra y Pagos (Stellar)
 
-El siguiente diagrama detalla cómo interactúan el cliente, la tienda web y la API de Coinstellation:
+La tienda web se conecta directamente con la API de Coinstellation según las especificaciones de la **Sección API del Dashboard**:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Comprador as 🛒 Comprador (Navegador)
     participant UI as 🛍️ Webstore (Next.js Frontend)
-    participant Server as 🔒 Next.js API Route (/api/payments/create)
-    participant Coinstellation as 🪐 Coinstellation Gateway
+    participant Coinstellation as 🪐 Coinstellation Gateway (Dashboard API)
     actor Wallet as 💳 Billetera Stellar (Freighter/Lobstr)
 
-    Comprador->>UI: Añade productos al carrito y pulsa "Procesar Pago"
-    UI->>Server: POST /api/payments/create con { amount, currency, description }
-    Note over Server: Inyecta X-Store-Key y destino de forma segura
-    Server->>Coinstellation: POST {EXTERNAL_URL}/api/payments/create
-    Coinstellation-->>Server: Retorna { payment: { id, memo, uri, qr } }
-    Server-->>UI: 200 OK con datos del pago
+    Comprador->>UI: Añade productos al carrito y pulsa "Pagar con Tarjeta o Web3"
+    UI->>Coinstellation: POST /api/payments/create (con X-Store-Key: cs_live_99)
+    Coinstellation-->>UI: Retorna { payment: { id, memo, uri, qr } }
     UI->>Comprador: Abre PaymentModal con Código QR y Memo obligatorio
     alt Opción A: Escanear QR
         Comprador->>Wallet: Escanea código QR desde su celular
@@ -124,7 +120,8 @@ sequenceDiagram
         Comprador->>Wallet: Clic en "Abrir en Billetera Stellar" (web+stellar:pay)
     end
     Wallet->>Coinstellation: Transacción firmada en la red Stellar con el Memo exacto
-    Coinstellation-->>UI: Confirmación de pago exitosa
+    UI->>Coinstellation: POST /api/payments/{id}/validate con txHash
+    Coinstellation-->>UI: Confirmación de pago exitosa (se refleja en el Dashboard)
 ```
 
 ---
@@ -261,12 +258,12 @@ export const DEFAULT_DESTINATION_WALLET = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQE
 
 Para cualquier agente o LLM que trabaje sobre este repositorio, estas son las reglas y contratos clave:
 
-- **Propósito**: Webstore plantilla para clientes de Coinstellation conectada a un servidor de pagos pagado por el cliente en el Dashboard.
+- **Propósito**: Webstore plantilla para clientes de Coinstellation conectada directamente a la pasarela de pagos Coinstellation.
 - **Entrypoint UI**: [app/page.tsx](file:///app/page.tsx) gestiona el estado principal (`cartItems`, `paymentDetails`, `isPaymentModalOpen`).
-- **Punto de integración con backend**: [app/api/payments/create/route.ts](file:///app/api/payments/create/route.ts) actúa como proxy server-to-server hacia `${EXTERNAL_PAYMENTS_API_URL}/api/payments/create`.
-- **Credenciales & Headers**: Toda llamada saliente al servicio de pagos debe incluir el header `X-Store-Key: <STORE_KEY>`.
-- **Estructura de respuesta**: Toda respuesta válida contiene `{ payment: { id, memo, uri, qr } }`. Si la API externa falla, la ruta proxy retorna `{ error: string, message: string }` con código HTTP apropiado.
-- **Estilos**: Tailwind CSS v4 con variables CSS personalizadas en [app/globals.css](file:///app/globals.css) (`--bg-dark: #170d2b`, `--bg-card: #1c1e22`, `--primary-color: #2b7fff`, `--accent-green: #2ecc71`).
+- **Punto de integración**: [lib/payment-service.ts](file:///lib/payment-service.ts) conecta directamente con la API de Coinstellation (`/api/payments/create` y `/api/payments/{id}/validate`).
+- **Credenciales & Headers**: Header `X-Store-Key: cs_live_99` o `Authorization: Bearer cs_live_99` según la Sección API del Dashboard.
+- **Estructura de respuesta**: Toda respuesta válida contiene `{ payment: { id, memo, uri, qr } }`.
+- **Estilos**: Tailwind CSS v4 con variables CSS personalizadas en [app/globals.css](file:///app/globals.css).
 
 ---
 

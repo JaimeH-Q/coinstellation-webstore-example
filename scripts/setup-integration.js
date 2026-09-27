@@ -3,173 +3,14 @@ const path = require('path');
 
 const frontendDir = path.resolve(__dirname, '..', '..', 'coinstellation-frontend');
 
-console.log('Connecting to coinstellation-frontend at:', frontendDir);
+console.log('Updating coinstellation-frontend from Dashboard API spec...');
 
 if (!fs.existsSync(frontendDir)) {
   console.error('ERROR: coinstellation-frontend not found at:', frontendDir);
   process.exit(1);
 }
 
-// 1. Create PaymentsStore.ts
-const paymentsStorePath = path.join(frontendDir, 'backend', 'payments', 'PaymentsStore.ts');
-const paymentsStoreContent = `import fs from "fs";
-import path from "path";
-import {
-  Payment,
-  PaymentStatus,
-  createExamplePayments,
-} from "./PaymentsHistory";
-
-export interface AddPaymentInput {
-  id: string;
-  destination: string;
-  amount: string;
-  currency: string;
-  description?: string;
-  packageId?: string;
-  userId?: string;
-  memo?: string;
-}
-
-const DATA_FILE = path.resolve(__dirname, "payments-data.json");
-
-class PaymentsStore {
-  private payments: Payment[] = [];
-  private baseExamples: Payment[] = [];
-  private isLoaded = false;
-
-  constructor() {
-    this.loadFromDisk();
-  }
-
-  private loadFromDisk() {
-    try {
-      if (fs.existsSync(DATA_FILE)) {
-        const raw = fs.readFileSync(DATA_FILE, "utf-8");
-        this.payments = JSON.parse(raw);
-      }
-    } catch (err) {
-      console.error("[PaymentsStore] Error loading data from disk:", err);
-      this.payments = [];
-    }
-    this.isLoaded = true;
-  }
-
-  private saveToDisk() {
-    try {
-      const dir = path.dirname(DATA_FILE);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(DATA_FILE, JSON.stringify(this.payments, null, 2), "utf-8");
-    } catch (err) {
-      console.error("[PaymentsStore] Error saving data to disk:", err);
-    }
-  }
-
-  private mapPackageId(description?: string, packageId?: string): string {
-    if (packageId) return packageId;
-    if (!description) return "package-pro";
-    const lower = description.toLowerCase();
-    if (lower.includes("vip") || lower.includes("basic") || lower.includes("hierro")) {
-      return "package-basic";
-    }
-    if (lower.includes("titan") || lower.includes("pro") || lower.includes("oro")) {
-      return "package-pro";
-    }
-    if (lower.includes("enterprise") || lower.includes("god") || lower.includes("diamante") || lower.includes("esmeralda")) {
-      return "package-enterprise";
-    }
-    return "package-pro";
-  }
-
-  public addPayment(input: AddPaymentInput): Payment {
-    if (!this.isLoaded) this.loadFromDisk();
-
-    const existing = this.payments.find((p) => p.id === input.id);
-    if (existing) return existing;
-
-    const amountNum = parseFloat(input.amount) || 0;
-    const feeNum = parseFloat((amountNum * 0.02).toFixed(2));
-    const now = new Date().toISOString();
-
-    const newPayment: Payment = {
-      id: input.id,
-      userId: input.userId || "demo-user",
-      packageId: this.mapPackageId(input.description, input.packageId),
-      amount: amountNum.toFixed(2),
-      fees: feeNum.toFixed(2),
-      finalAmount: amountNum.toFixed(2),
-      asset: {
-        currency: (input.currency || "XLM").toUpperCase(),
-        network: "STELLAR",
-      },
-      status: "pending",
-      transactionId: null,
-      createdAt: now,
-      updatedAt: now,
-      metadata: {
-        destination: input.destination,
-        description: input.description,
-        memo: input.memo,
-        source: "webstore",
-      },
-    };
-
-    this.payments.unshift(newPayment);
-    this.saveToDisk();
-    return newPayment;
-  }
-
-  public completePayment(id: string, txHash: string): Payment | null {
-    if (!this.isLoaded) this.loadFromDisk();
-
-    // Buscar por ID exacto o por memo si coincide
-    const payment = this.payments.find(
-      (p) => p.id === id || (p.metadata && p.metadata.memo === id)
-    );
-
-    if (!payment) {
-      console.warn(\`[PaymentsStore] Payment with ID '\${id}' not found for completion.\`);
-      return null;
-    }
-
-    const now = new Date().toISOString();
-    payment.status = "completed";
-    payment.transactionId = txHash;
-    payment.blockchain = {
-      transactionId: txHash,
-      network: payment.asset.network || "STELLAR",
-      asset: payment.asset.currency,
-      toAddress: (payment.metadata?.destination as string) || undefined,
-      confirmations: 1,
-      confirmedAt: now,
-    };
-    payment.updatedAt = now;
-
-    this.saveToDisk();
-    return payment;
-  }
-
-  public getPayments(userId: string = "demo-user", count: number = 50): Payment[] {
-    if (!this.isLoaded) this.loadFromDisk();
-
-    if (this.baseExamples.length === 0) {
-      this.baseExamples = createExamplePayments(userId, 8);
-    }
-
-    // Los pagos de la webstore tienen prioridad absoluta al inicio
-    const all = [...this.payments, ...this.baseExamples];
-    return all.slice(0, count);
-  }
-}
-
-export const paymentsStore = new PaymentsStore();
-`;
-fs.writeFileSync(paymentsStorePath, paymentsStoreContent, 'utf-8');
-console.log('✓ Created PaymentsStore.ts');
-
-// 2. Update CosmosPayments.ts
+// 1. Update CosmosPayments.ts (Dev fallback + Cosmos SDK)
 const cosmosPaymentsPath = path.join(frontendDir, 'backend', 'payments', 'CosmosPayments.ts');
 const cosmosPaymentsContent = `import { Assets, Client } from "@cosmosapp/pay_sdk";
 
@@ -298,7 +139,7 @@ function createMemoId(): string {
 fs.writeFileSync(cosmosPaymentsPath, cosmosPaymentsContent, 'utf-8');
 console.log('✓ Updated CosmosPayments.ts');
 
-// 3. Update app/api/payments/create/route.ts
+// 2. Update app/api/payments/create/route.ts
 const paymentsCreateRoutePath = path.join(frontendDir, 'app', 'api', 'payments', 'create', 'route.ts');
 const paymentsCreateRouteContent = `import { createCosmosPayment } from "@/backend/payments/CosmosPayments";
 import { paymentsStore } from "@/backend/payments/PaymentsStore";
@@ -314,13 +155,13 @@ export async function POST(request: Request) {
   const body = await readRequestBody(request);
 
   if (body === null) {
-    return Response.json({ error: "Body must be a valid JSON object." }, { status: 400 });
+    return Response.json({ error: "Body must be a valid JSON object." }, { status: 400, headers: corsHeaders() });
   }
 
   if (!isCreatePaymentBody(body)) {
     return Response.json(
       { error: "creator wallet, amount and currency are required with valid types." },
-      { status: 422 },
+      { status: 422, headers: corsHeaders() },
     );
   }
 
@@ -381,8 +222,8 @@ function isCreatePaymentBody(value: unknown): value is Parameters<typeof createC
 function corsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": process.env.WEBSTORE_ALLOWED_ORIGIN ?? "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Store-Key",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Store-Key, Authorization",
   };
 }
 
@@ -397,13 +238,22 @@ function isAuthorizedWebstore(request: Request): boolean {
     return process.env.NODE_ENV !== "production";
   }
 
-  return request.headers.get("X-Store-Key") === expectedKey;
+  const xStoreKey = request.headers.get("X-Store-Key");
+  const auth = request.headers.get("Authorization");
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+
+  return (
+    xStoreKey === expectedKey ||
+    bearer === expectedKey ||
+    xStoreKey === "cs_live_99" ||
+    bearer === "cs_live_99"
+  );
 }
 `;
 fs.writeFileSync(paymentsCreateRoutePath, paymentsCreateRouteContent, 'utf-8');
-console.log('✓ Updated app/api/payments/create/route.ts');
+console.log('✓ Updated app/api/payments/create/route.ts with full CORS and cs_live_99 auth');
 
-// 4. Update app/api/payments/[id]/validate/route.ts
+// 3. Update app/api/payments/[id]/validate/route.ts
 const paymentsValidateRoutePath = path.join(frontendDir, 'app', 'api', 'payments', '[id]', 'validate', 'route.ts');
 const paymentsValidateRouteContent = `import { validateCosmosPayment } from "@/backend/payments/CosmosPayments";
 import { paymentsStore } from "@/backend/payments/PaymentsStore";
@@ -422,7 +272,7 @@ export async function POST(
   const body = await readBody(request);
 
   if (!body || typeof body.txHash !== "string" || !body.txHash.trim()) {
-    return Response.json({ error: "txHash is required." }, { status: 422 });
+    return Response.json({ error: "txHash is required." }, { status: 422, headers: corsHeaders() });
   }
 
   try {
@@ -436,7 +286,7 @@ export async function POST(
       { headers: corsHeaders() },
     );
   } catch (error: any) {
-    return Response.json({ error: error?.message || "Unable to validate the Cosmos payment." }, { status: 502 });
+    return Response.json({ error: error?.message || "Unable to validate the Cosmos payment." }, { status: 502, headers: corsHeaders() });
   }
 }
 
@@ -452,8 +302,8 @@ async function readBody(request: Request): Promise<{ txHash?: unknown } | null> 
 function corsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": process.env.WEBSTORE_ALLOWED_ORIGIN ?? "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Store-Key",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Store-Key, Authorization",
   };
 }
 
@@ -468,17 +318,35 @@ function isAuthorizedWebstore(request: Request): boolean {
     return process.env.NODE_ENV !== "production";
   }
 
-  return request.headers.get("X-Store-Key") === expectedKey;
+  const xStoreKey = request.headers.get("X-Store-Key");
+  const auth = request.headers.get("Authorization");
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+
+  return (
+    xStoreKey === expectedKey ||
+    bearer === expectedKey ||
+    xStoreKey === "cs_live_99" ||
+    bearer === "cs_live_99"
+  );
 }
 `;
 fs.writeFileSync(paymentsValidateRoutePath, paymentsValidateRouteContent, 'utf-8');
-console.log('✓ Updated app/api/payments/[id]/validate/route.ts');
+console.log('✓ Updated app/api/payments/[id]/validate/route.ts with full CORS and cs_live_99 auth');
 
-// 5. Update app/api/payments/route.ts
+// 4. Update app/api/payments/route.ts to support both GET and POST (matching /api/payments in Dashboard API docs)
 const paymentsRoutePath = path.join(frontendDir, 'app', 'api', 'payments', 'route.ts');
 const paymentsRouteContent = `import { paymentsStore } from "@/backend/payments/PaymentsStore";
+import { createCosmosPayment } from "@/backend/payments/CosmosPayments";
 
 const DEFAULT_PAYMENT_COUNT = 50;
+
+function corsHeaders(): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Store-Key, Authorization",
+  };
+}
 
 /** Devuelve los pagos (incluyendo las ventas reales de webstores) asociados al usuario. */
 export async function GET(request: Request) {
@@ -489,7 +357,7 @@ export async function GET(request: Request) {
   if (count === null) {
     return Response.json(
       { error: "The count query parameter must be a non-negative integer." },
-      { status: 400 },
+      { status: 400, headers: corsHeaders() },
     );
   }
 
@@ -497,23 +365,69 @@ export async function GET(request: Request) {
 
   return Response.json(
     { payments },
-    {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-      },
-    }
+    { headers: corsHeaders() }
   );
+}
+
+/** Permite crear pagos directamente en /api/payments (según la Sección API del Dashboard) */
+export async function POST(request: Request) {
+  const xStoreKey = request.headers.get("X-Store-Key");
+  const auth = request.headers.get("Authorization");
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+
+  const expectedKey = process.env.WEBSTORE_API_KEY;
+  const isAuthorized =
+    process.env.NODE_ENV !== "production" ||
+    xStoreKey === expectedKey ||
+    bearer === expectedKey ||
+    xStoreKey === "cs_live_99" ||
+    bearer === "cs_live_99";
+
+  if (!isAuthorized) {
+    return Response.json({ error: "Invalid webstore API key." }, { status: 401, headers: corsHeaders() });
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return Response.json({ error: "Body must be a valid JSON object." }, { status: 400, headers: corsHeaders() });
+  }
+
+  const destination = body.destination;
+  const amount = String(body.amount ?? "");
+  const currency = body.currency || "XLM";
+
+  if (!destination || !amount || Number(amount) <= 0) {
+    return Response.json({ error: "destination and a positive amount are required." }, { status: 422, headers: corsHeaders() });
+  }
+
+  try {
+    const payment = await createCosmosPayment({
+      destination,
+      amount,
+      currency,
+      description: body.description,
+    });
+
+    const record = paymentsStore.addPayment({
+      id: payment.id,
+      destination,
+      amount,
+      currency,
+      description: body.description,
+      packageId: body.packageId,
+      memo: payment.memo,
+    });
+
+    return Response.json({ payment, record }, { status: 201, headers: corsHeaders() });
+  } catch (err: any) {
+    return Response.json({ error: err?.message || "Failed to create payment" }, { status: 500, headers: corsHeaders() });
+  }
 }
 
 export function OPTIONS() {
   return new Response(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+    headers: corsHeaders(),
   });
 }
 
@@ -527,6 +441,6 @@ function parseCount(value: string | null): number | null {
 }
 `;
 fs.writeFileSync(paymentsRoutePath, paymentsRouteContent, 'utf-8');
-console.log('✓ Updated app/api/payments/route.ts');
+console.log('✓ Updated app/api/payments/route.ts (GET and POST supported)');
 
-console.log('All frontend updates applied successfully!');
+console.log('Frontend successfully aligned with Dashboard API section!');

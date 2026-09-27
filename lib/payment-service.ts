@@ -1,3 +1,9 @@
+import {
+  COINSTELLATION_API_URL,
+  COINSTELLATION_API_KEY,
+  DEFAULT_DESTINATION_WALLET,
+  DEFAULT_CURRENCY,
+} from "./payment-config";
 import { PaymentApiResponse } from "@/types/webstore";
 
 export interface CreatePaymentOptions {
@@ -9,67 +15,107 @@ export interface CreatePaymentOptions {
 }
 
 /**
- * Crea una orden de pago llamando al endpoint interno que conecta
- * de forma segura con la API principal de Coinstellation.
+ * Cliente SDK de Coinstellation según las especificaciones de la
+ * Sección API del Dashboard (SDK Node/TypeScript interactivo):
+ *
+ * ```ts
+ * import { Coinstellation } from '@/lib/payment-service';
+ * const pay = new Coinstellation({ apiKey: 'cs_live_99' });
+ * await pay.checkout.process({ amount: 24.99, currency: 'USD' });
+ * ```
  */
-export async function createPayment({
-  amount,
-  description = "Orden de compra",
-  destination,
-  currency = "XLM",
-  packageId,
-}: CreatePaymentOptions): Promise<PaymentApiResponse> {
-  const response = await fetch("/api/payments/create", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      amount: String(amount),
-      description,
-      destination,
-      currency,
-      packageId,
-    }),
-  });
+export class Coinstellation {
+  private apiKey: string;
+  private baseUrl: string;
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data.message || data.error || `Error creando el pago (${response.status})`
-    );
+  constructor(config?: { apiKey?: string; baseUrl?: string }) {
+    this.apiKey = config?.apiKey || COINSTELLATION_API_KEY;
+    this.baseUrl = (config?.baseUrl || COINSTELLATION_API_URL).trim().replace(/\/+$/, "");
   }
 
-  return data;
+  public checkout = {
+    process: async (options: CreatePaymentOptions): Promise<PaymentApiResponse> => {
+      const endpoint = `${this.baseUrl}/api/payments/create`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Store-Key": this.apiKey,
+          "Authorization": `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          destination: options.destination || DEFAULT_DESTINATION_WALLET,
+          amount: String(options.amount),
+          currency: options.currency || DEFAULT_CURRENCY,
+          description: options.description || "Orden de compra",
+          packageId: options.packageId,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.error ||
+          `Error al comunicarse con Coinstellation (${response.status})`
+        );
+      }
+
+      return data as PaymentApiResponse;
+    },
+
+    validate: async (
+      paymentId: string,
+      txHash?: string
+    ): Promise<{ payment: any; record?: any }> => {
+      const endpoint = `${this.baseUrl}/api/payments/${paymentId}/validate`;
+      const hash =
+        txHash ||
+        `tx_stellar_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Store-Key": this.apiKey,
+          "Authorization": `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({ txHash: hash }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.error ||
+          `Error al validar el pago en Coinstellation (${response.status})`
+        );
+      }
+
+      return data;
+    },
+  };
+}
+
+// Instancia singleton por defecto con credenciales de la Sección API
+export const coinstellation = new Coinstellation();
+
+/**
+ * Función directa para crear orden de cobro en Coinstellation
+ */
+export async function createPayment(options: CreatePaymentOptions): Promise<PaymentApiResponse> {
+  return coinstellation.checkout.process(options);
 }
 
 /**
- * Valida un pago completado en la red Stellar comunicándolo al backend de Coinstellation.
+ * Función directa para validar pago completado en Coinstellation
  */
 export async function validatePayment(
   paymentId: string,
   txHash?: string
 ): Promise<{ payment: any; record?: any }> {
-  const hash =
-    txHash ||
-    `tx_stellar_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-  const response = await fetch(`/api/payments/${paymentId}/validate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ txHash: hash }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data.message || data.error || `Error al validar el pago (${response.status})`
-    );
-  }
-
-  return data;
+  return coinstellation.checkout.validate(paymentId, txHash);
 }

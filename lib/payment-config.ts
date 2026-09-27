@@ -3,40 +3,26 @@
  * CONFIGURACIÓN DE LA PASARELA DE PAGOS (COINSTELLATION)
  * ============================================================================
  * 
- * ✏️ VARIABLE PRINCIPAL PARA LA URL:
- * Puedes definir la URL directamente en la variable EXTERNAL_PAYMENTS_API_URL
- * o a través de la variable de entorno COINSTELLATION_API_URL en tu archivo .env.local
+ * Datos obtenidos directamente de la Sección API del Dashboard de Coinstellation:
+ * - API Key Activa: cs_live_99
+ * - Endpoint Base: http://localhost:3000 (o https://api.coinstellation.com/v1)
+ * - Autenticación: 'X-Store-Key: cs_live_99' y 'Authorization: Bearer cs_live_99'
+ * - Wallet Stellar de destino: G...
  */
 
-// 👉 CAMBIA ESTA VARIABLE POR LA URL DE TU SERVICIO EXTERNO:
-export const EXTERNAL_PAYMENTS_API_URL =
-  process.env.COINSTELLATION_API_URL ||
+export const COINSTELLATION_API_URL =
   process.env.NEXT_PUBLIC_COINSTELLATION_API_URL ||
+  process.env.COINSTELLATION_API_URL ||
   "http://localhost:3000";
 
-/**
- * Clave de tienda para el header 'X-Store-Key'
- */
-export const STORE_KEY =
+export const COINSTELLATION_API_KEY =
+  process.env.NEXT_PUBLIC_COINSTELLATION_API_KEY ||
   process.env.COINSTELLATION_STORE_KEY ||
-  "tu_clave_de_webstore";
+  "cs_live_99";
 
-/**
- * Wallet pública Stellar del creador/tienda donde se recibirán los pagos (destino)
- */
 export const DEFAULT_DESTINATION_WALLET =
+  process.env.NEXT_PUBLIC_COINSTELLATION_DESTINATION_WALLET ||
   process.env.COINSTELLATION_DESTINATION_WALLET ||
   "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
 
-/**
- * Moneda por defecto para los pagos
- */
 export const DEFAULT_CURRENCY = "XLM";
-
-/**
- * Modo Simulación / Mock (opcional):
- * Si es 'true', permite probar el modal y el flujo de pago con datos de ejemplo
- * sin necesidad de tener el servidor externo encendido.
- */
-export const ENABLE_MOCK_PAYMENT =
-  process.env.COINSTELLATION_ENABLE_MOCK === "true" || false;
