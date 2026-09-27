@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Loader2,
-  Wallet,
+  Link2,
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
@@ -31,7 +31,7 @@ export function PaymentModal({
   isOpen,
   payment,
   amount,
-  currency = "XLM",
+  currency = "USDC",
   description,
   onClose,
   onPaymentSuccess,
@@ -86,18 +86,16 @@ export function PaymentModal({
     setValidationError(null);
 
     try {
-      const generatedTx = `0x${Array.from(crypto.getRandomValues(new Uint8Array(20)))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("")}`;
+      const generatedTx = `tx_auth_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      const res = await validatePayment(payment.id, generatedTx);
+      await validatePayment(payment.id, generatedTx);
       setIsConfirmed(true);
       setConfirmedTxHash(generatedTx);
       onPaymentSuccess?.();
     } catch (err: any) {
       console.error("Error validando venta:", err);
       setValidationError(
-        err.message || "No se pudo validar el pago en Coinstellation."
+        err.message || "No se pudo validar el pago en la pasarela."
       );
     } finally {
       setIsValidating(false);
@@ -115,7 +113,7 @@ export function PaymentModal({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={qrUrl}
-            alt="Código QR de pago Stellar"
+            alt="Código QR de pago"
             className="h-44 w-44 rounded-lg bg-white p-2 shadow-inner object-contain"
           />
         );
@@ -136,7 +134,7 @@ export function PaymentModal({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={payment.qr}
-          alt="Código QR de pago Stellar"
+          alt="Código QR de pago"
           className="h-44 w-44 rounded-lg bg-white p-2 shadow-inner object-contain"
         />
       );
@@ -156,7 +154,7 @@ export function PaymentModal({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={base64Src}
-        alt="Código QR de pago Stellar"
+        alt="Código QR de pago"
         className="h-44 w-44 rounded-lg bg-white p-2 shadow-inner object-contain"
       />
     );
@@ -192,17 +190,17 @@ export function PaymentModal({
             </div>
 
             <h3 className="text-xl font-black text-white">
-              ¡Venta Completada con Éxito!
+              ¡Pago Completado con Éxito!
             </h3>
             <p className="mt-1.5 text-xs text-[#8b949e] max-w-sm">
-              La orden ha sido confirmada en la red Stellar y registrada
-              correctamente en el sistema principal de Coinstellation.
+              La orden ha sido confirmada y registrada
+              correctamente en el sistema principal.
             </p>
 
             {/* Tarjeta de Resumen de la Venta */}
             <div className="my-5 w-full rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-left">
               <div className="flex justify-between items-center border-b border-emerald-500/20 pb-2.5 mb-2.5">
-                <span className="text-xs text-[#8b949e]">Total Cobrado:</span>
+                <span className="text-xs text-[#8b949e]">Total Abonado:</span>
                 <span className="text-base font-extrabold text-[#2ecc71]">
                   {amount} {currency}
                 </span>
@@ -214,16 +212,16 @@ export function PaymentModal({
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs py-1">
-                <span className="text-[#8b949e]">Stellar Memo ID:</span>
+                <span className="text-[#8b949e]">Referencia de Pago:</span>
                 <span className="font-mono text-emerald-300 font-medium">
                   {payment.memo}
                 </span>
               </div>
               {confirmedTxHash && (
                 <div className="flex justify-between items-center text-xs py-1">
-                  <span className="text-[#8b949e]">Hash Transacción:</span>
+                  <span className="text-[#8b949e]">Código de Autorización:</span>
                   <span className="font-mono text-emerald-400/90 font-medium">
-                    {confirmedTxHash.slice(0, 14)}...
+                    {confirmedTxHash.slice(0, 18)}...
                   </span>
                 </div>
               )}
@@ -252,17 +250,17 @@ export function PaymentModal({
           </div>
         ) : (
           /* ============================================================== */
-          /* PANTALLA DE PAGO / CHECKOUT CON QR, MEMO Y VALIDACIÓN          */
+          /* PANTALLA DE PAGO / CHECKOUT CON LINK, QR, REFERENCIA Y VALIDACIÓN */
           /* ============================================================== */
           <>
             {/* Encabezado */}
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2b7fff]/15 text-[#2b7fff]">
-                <Wallet className="h-4 w-4" />
+                <Link2 className="h-4 w-4" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  Pago con Stellar ({currency})
+                  Link de Pago Generado ({currency})
                 </h3>
                 {description && (
                   <p className="text-xs text-[#8b949e]">{description}</p>
@@ -273,7 +271,7 @@ export function PaymentModal({
             {/* Total a pagar */}
             <div className="my-3 rounded-xl border border-[#2d3139] bg-[#141518] p-3 text-center">
               <p className="text-xs font-medium text-[#8b949e] uppercase tracking-wider">
-                Monto a Transferir
+                Total a Pagar
               </p>
               <p className="text-2xl sm:text-3xl font-black text-[#2ecc71] mt-0.5">
                 {amount} {currency}
@@ -287,23 +285,23 @@ export function PaymentModal({
               </div>
               <span className="mt-1.5 text-[11px] text-[#8b949e] flex items-center gap-1.5">
                 <QrCode className="h-3.5 w-3.5 text-[#2b7fff]" />
-                Escanea con tu billetera Stellar (Freighter, Lobstr)
+                Escanea con tu aplicación de pagos o lector QR
               </span>
             </div>
 
-            {/* Campo MEMO - Crucial para Stellar */}
+            {/* Campo Referencia */}
             <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
-                    <span>MEMO OBLIGATORIO</span>
+                    <span>REFERENCIA DE PAGO</span>
                   </div>
                   <p className="mt-1 text-xs text-amber-200/90 font-mono font-semibold break-all">
                     {payment.memo}
                   </p>
                   <p className="mt-0.5 text-[11px] text-amber-300/70">
-                    Incluye este Memo para registrar la venta en Coinstellation.
+                    Conserva esta referencia para la acreditación automática de tu compra.
                   </p>
                 </div>
                 <button
@@ -336,7 +334,7 @@ export function PaymentModal({
 
             {/* Botones de Acción */}
             <div className="mt-4 flex flex-col gap-2">
-              {/* Botón principal: Simular / Confirmar Venta */}
+              {/* Botón principal: Confirmar Pago */}
               <button
                 type="button"
                 onClick={handleConfirmSale}
@@ -346,12 +344,12 @@ export function PaymentModal({
                 {isValidating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Verificando transacción en Stellar...</span>
+                    <span>Verificando transacción...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="h-4 w-4" />
-                    <span>Confirmar Pago (Efectuar Venta)</span>
+                    <span>Confirmar Pago</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -366,14 +364,14 @@ export function PaymentModal({
                     className="cursor-pointer text-[#2b7fff] hover:underline flex items-center gap-1 font-medium"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    <span>Abrir en billetera</span>
+                    <span>Abrir link de pago</span>
                   </a>
                   <button
                     type="button"
                     onClick={() => handleCopy(payment.uri, "uri")}
                     className="cursor-pointer text-[#8b949e] hover:text-white transition-colors"
                   >
-                    {copiedUri ? "¡URI Copiada!" : "Copiar enlace URI"}
+                    {copiedUri ? "¡Link Copiado!" : "Copiar link de pago"}
                   </button>
                 </div>
               )}
@@ -383,7 +381,7 @@ export function PaymentModal({
             <div className="mt-3 flex items-center justify-between border-t border-[#2d3139] pt-2.5 text-[11px] text-[#8b949e]">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5 text-[#2ecc71]" />
-                Pasarela Coinstellation
+                Pasarela de Pago Segura
               </span>
               <button
                 type="button"

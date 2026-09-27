@@ -15,7 +15,7 @@ export interface CreatePaymentOptions {
 }
 
 /**
- * Cliente SDK de Coinstellation según las especificaciones de la
+ * Cliente SDK de pagos según las especificaciones de la
  * Sección API del Dashboard (SDK Node/TypeScript interactivo):
  *
  * ```ts
@@ -59,7 +59,7 @@ export class Coinstellation {
         throw new Error(
           data?.message ||
           data?.error ||
-          `Error al comunicarse con Coinstellation (${response.status})`
+          `Error al comunicarse con la pasarela de pagos (${response.status})`
         );
       }
 
@@ -73,7 +73,7 @@ export class Coinstellation {
       const endpoint = `${this.baseUrl}/api/payments/${paymentId}/validate`;
       const hash =
         txHash ||
-        `tx_stellar_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        `tx_auth_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -91,7 +91,7 @@ export class Coinstellation {
         throw new Error(
           data?.message ||
           data?.error ||
-          `Error al validar el pago en Coinstellation (${response.status})`
+          `Error al validar el pago en la pasarela (${response.status})`
         );
       }
 
@@ -104,14 +104,14 @@ export class Coinstellation {
 export const coinstellation = new Coinstellation();
 
 /**
- * Función directa para crear orden de cobro en Coinstellation
+ * Función directa para crear orden de cobro en la pasarela
  */
 export async function createPayment(options: CreatePaymentOptions): Promise<PaymentApiResponse> {
   return coinstellation.checkout.process(options);
 }
 
 /**
- * Función directa para validar pago completado en Coinstellation
+ * Función directa para validar pago completado en la pasarela
  */
 export async function validatePayment(
   paymentId: string,
