@@ -12,7 +12,7 @@
 export const EXTERNAL_PAYMENTS_API_URL =
   process.env.COINSTELLATION_API_URL ||
   process.env.NEXT_PUBLIC_COINSTELLATION_API_URL ||
-  "https://tu-url-de-api-aqui.com";
+  "http://localhost:3000";
 
 /**
  * Clave de tienda para el header 'X-Store-Key'
@@ -26,7 +26,7 @@ export const STORE_KEY =
  */
 export const DEFAULT_DESTINATION_WALLET =
   process.env.COINSTELLATION_DESTINATION_WALLET ||
-  "G...WALLET_DEL_CREADOR";
+  "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
 
 /**
  * Moneda por defecto para los pagos

@@ -82,10 +82,19 @@ export default function WebstorePage() {
 
     try {
       const orderNumber = Math.floor(1000 + Math.random() * 9000);
+      const primaryItem = cartItems[0]?.name || "Ítems";
+      const description = `Orden #${orderNumber} (${cartItems.length} ítems - ${primaryItem})`;
+      const packageId = primaryItem.toLowerCase().includes("vip")
+        ? "package-basic"
+        : primaryItem.toLowerCase().includes("titan")
+        ? "package-pro"
+        : "package-enterprise";
+
       const res = await createPayment({
         amount: total.toFixed(2),
         currency: "XLM",
-        description: `Orden #${orderNumber} (${cartItems.length} ítems)`,
+        description,
+        packageId,
       });
 
       if (res && res.payment) {
@@ -207,6 +216,9 @@ export default function WebstorePage() {
         currency="XLM"
         description="Orden de compra en CraftNetwork"
         onClose={() => setIsPaymentModalOpen(false)}
+        onPaymentSuccess={() => {
+          setCartItems([]);
+        }}
       />
 
       {/* Footer */}

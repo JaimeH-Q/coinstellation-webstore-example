@@ -233,16 +233,27 @@ export const DEFAULT_DESTINATION_WALLET = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQE
    ```
    *(Modifica `.env.local` con tu URL y Store Key)*
 
-3. **Ejecutar el servidor de desarrollo**:
+3. **Conexión con el Sistema Principal (coinstellation-frontend)**:
+   - Asegúrate de que `coinstellation-frontend` esté corriendo en el puerto 3000 (`http://localhost:3000`).
+   - En tu archivo `.env.local`:
+     ```env
+     COINSTELLATION_API_URL=http://localhost:3000
+     COINSTELLATION_STORE_KEY=tu_clave_de_webstore
+     COINSTELLATION_DESTINATION_WALLET=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+     ```
+
+4. **Ejecutar la Webstore en desarrollo**:
    ```bash
    npm run dev
    ```
-   La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
+   La tienda web estará disponible en [http://localhost:3001](http://localhost:3001).
 
-4. **Verificar tipado y compilación**:
-   ```bash
-   npm run build
-   ```
+5. **Flujo de Prueba de Venta en Vivo**:
+   - Agrega cualquier producto al carrito (ej. Rango Titan) y presiona **"Procesar Pago"**.
+   - Se abrirá el modal con el código QR, Memo y monto en XLM generado directamente por Coinstellation.
+   - Presiona **"Confirmar Pago (Efectuar Venta)"** para simular la confirmación on-chain con un txHash.
+   - Haz clic en **"Ver Venta en el Dashboard"** (o ve a [http://localhost:3000/dashboard](http://localhost:3000/dashboard)).
+   - Verás la venta reflejada inmediatamente en los **Ingresos Netos**, **Pedidos Totales**, **Gráficos** y en el **Historial de Pagos** como `Completado`.
 
 ---
 
