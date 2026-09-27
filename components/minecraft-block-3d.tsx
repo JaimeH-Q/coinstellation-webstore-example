@@ -18,7 +18,7 @@ export function MinecraftBlock3D({ type = "netherite", size = 110 }: MinecraftBl
       glow: "rgba(245, 158, 11, 0.4)",
       label: "?",
       top: "bg-amber-300",
-      accent: "Lucky Crate Web3",
+      accent: "Lucky Crate",
     },
     ender: {
       front: "bg-emerald-950 border-emerald-500/60 text-emerald-400 font-bold",

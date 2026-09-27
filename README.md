@@ -6,7 +6,7 @@
 [![Stellar](https://img.shields.io/badge/Stellar-XLM-08B5E5?style=for-the-badge&logo=stellar)](https://stellar.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
-Este repositorio es una **tienda web de demostración (Webstore)** construida para **Coinstellation**, una plataforma que permite a creadores y comunidades diseñar su propia página web de ventas y monetizar mediante la red blockchain **Stellar (XLM)** a través de una infraestructura de servidores dedicados gestionados desde el panel central.
+Este repositorio es una **tienda web de demostración (Webstore)** construida para **Coinstellation**, una plataforma que permite a creadores y comunidades diseñar su propia página web de ventas y monetizar en **USDC** (o XLM) con links de pago seguros y entrega automática a través de servidores dedicados gestionados desde el panel central.
 
 ---
 
@@ -36,13 +36,13 @@ flowchart LR
 
 1. **Dashboard & Creación de Proyecto**:
    - El creador accede al portal principal con su cuenta.
-   - Diseña visualmente su tienda (logos, productos, rangos, precios en USD/XLM).
+   - Diseña visualmente su tienda (logos, productos, rangos, precios en USDC).
    - Contrata y paga el servidor en la nube donde se alojará su tienda web.
 2. **Servidor y Webstore Dedicada**:
    - Se aprovisiona una instancia basada en este repositorio con la configuración, branding y productos del cliente.
 3. **Gestión de Ventas y Pagos**:
    - Cada tienda web se comunica de forma autenticada con el backend de Coinstellation usando una clave única de tienda (`X-Store-Key`).
-   - Los clientes finales pagan con XLM o USDC escaneando un código QR o abriendo su billetera Stellar (ej. Freighter o Lobstr) con un `memo` identificador de orden.
+   - Los clientes finales pagan en USDC (o XLM) escaneando un código QR o abriendo su billetera Stellar (ej. Freighter o Lobstr) con un `memo` identificador de orden.
 
 ---
 

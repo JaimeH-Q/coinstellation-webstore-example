@@ -8,10 +8,10 @@ interface DonorCardProps {
 
 export function DonorCard({
   donor = {
-    username: "Satoshi_Craft",
-    avatarUrl: "https://mc-heads.net/avatar/Satoshi/80",
-    message: "¡Aportando a la economía Web3 de CraftNetwork! 🚀",
-    totalDonated: "0.85 SOL ($125 USD)",
+    username: "Alex_Builder",
+    avatarUrl: "https://mc-heads.net/avatar/Alex/80",
+    message: "¡Aportando a la comunidad y crecimiento de CraftNetwork! 🚀",
+    totalDonated: "$125 USD",
     rankBadge: "NETHERITE GOD",
   },
 }: DonorCardProps) {
