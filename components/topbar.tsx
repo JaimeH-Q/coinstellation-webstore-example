@@ -7,7 +7,6 @@ interface TopbarProps {
   selectedCurrency?: string;
   onCurrencyChange?: (currency: string) => void;
   username?: string;
-  walletName?: string | null;
   onLoginClick?: () => void;
   mainSiteUrl?: string;
 }
@@ -16,7 +15,6 @@ export function Topbar({
   selectedCurrency = "USD",
   onCurrencyChange,
   username = "Invitado",
-  walletName,
   onLoginClick,
   mainSiteUrl = "#",
 }: TopbarProps) {
@@ -37,7 +35,7 @@ export function Topbar({
         </a>
       </div>
 
-      {/* Right: Currency Selector & Player/Wallet Login */}
+      {/* Right: Currency Selector & Player Login */}
       <div className="flex items-center gap-2.5">
         {/* Currency Selector */}
         <div className="relative">
@@ -64,11 +62,11 @@ export function Topbar({
           </div>
         </div>
 
-        {/* Player Profile / Wallet Connect Button */}
+        {/* Player Profile Button */}
         <button
           type="button"
           onClick={onLoginClick}
-          className="group inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-r from-white/5 to-white/10 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white transition-all hover:border-blue-500/50 hover:from-blue-600/20 hover:to-purple-600/20 shadow-md"
+          className="group inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-gradient-to-r from-white/5 to-white/10 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white transition-all hover:border-blue-500/50 hover:from-blue-600/20 hover:to-purple-600/20 shadow-md cursor-pointer"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -78,14 +76,7 @@ export function Topbar({
             height={22}
             className="h-5.5 w-5.5 rounded-md border border-white/20 bg-zinc-800 object-cover shadow-xs"
           />
-          <div className="flex flex-col text-left">
-            <span className="leading-tight">{username}</span>
-            {walletName && (
-              <span className="text-[10px] font-medium text-purple-400 leading-none">
-                {walletName.split(" ")[0]}
-              </span>
-            )}
-          </div>
+          <span className="leading-tight">{username}</span>
           <Sparkles className="h-3.5 w-3.5 text-blue-400 transition-transform group-hover:rotate-12" />
         </button>
       </div>

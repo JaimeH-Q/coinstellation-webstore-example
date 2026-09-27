@@ -25,7 +25,6 @@ import { createPayment } from "@/lib/payment-service";
 export default function WebstorePage() {
   const [currency, setCurrency] = useState("USD");
   const [username, setUsername] = useState("Notch");
-  const [walletName, setWalletName] = useState<string | null>("Phantom (Solana)");
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "demo-1",
@@ -41,7 +40,7 @@ export default function WebstorePage() {
   const [crateProduct, setCrateProduct] = useState<Product | null>(null);
   const [isCrateModalOpen, setIsCrateModalOpen] = useState(false);
 
-  // Player / Wallet Connect Modal State
+  // Player Profile Modal State
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
   // Stellar / Coinstellation Payment Modal State
@@ -110,12 +109,9 @@ export default function WebstorePage() {
     setIsCrateModalOpen(true);
   };
 
-  // Save Player Profile / Wallet
-  const handleSavePlayer = (newUsername: string, newWallet?: string | null) => {
+  // Save Player Profile
+  const handleSavePlayer = (newUsername: string) => {
     setUsername(newUsername);
-    if (newWallet !== undefined) {
-      setWalletName(newWallet);
-    }
     showToast(`Perfil sincronizado: ${newUsername}`);
   };
 
@@ -183,12 +179,11 @@ export default function WebstorePage() {
         </div>
       )}
 
-      {/* Topbar: Nav, Multi-Currency Selector, Player Skin / Wallet Profile */}
+      {/* Topbar: Nav, Multi-Currency Selector, Player Skin Profile */}
       <Topbar
         selectedCurrency={currency}
         onCurrencyChange={setCurrency}
         username={username}
-        walletName={walletName}
         onLoginClick={() => setIsPlayerModalOpen(true)}
       />
 
@@ -335,11 +330,10 @@ export default function WebstorePage() {
         onClose={() => setIsCrateModalOpen(false)}
       />
 
-      {/* Player / Web3 Wallet Connect Modal */}
+      {/* Player Connect Modal */}
       <PlayerConnectModal
         isOpen={isPlayerModalOpen}
         currentUsername={username}
-        currentWallet={walletName}
         onClose={() => setIsPlayerModalOpen(false)}
         onSavePlayer={handleSavePlayer}
       />
