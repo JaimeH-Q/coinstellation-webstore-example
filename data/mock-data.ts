@@ -1,15 +1,11 @@
-import { Product, RecentPurchase, DonorOfTheMonth, CryptoRate } from "@/types/webstore";
+import { Product, RecentPurchase, DonorOfTheMonth, CurrencyRate } from "@/types/webstore";
 
-export const CRYPTO_RATES: Record<string, CryptoRate> = {
-  USD: { symbol: "USD", name: "Dólar Estadounidense", ratePerUSD: 1, icon: "$", isCrypto: false },
-  EUR: { symbol: "EUR", name: "Euro", ratePerUSD: 0.92, icon: "€", isCrypto: false },
-  ARS: { symbol: "ARS", name: "Peso Argentino", ratePerUSD: 1250, icon: "$", isCrypto: false },
-  USDT: { symbol: "USDT", name: "Tether (USDT)", ratePerUSD: 1.0, icon: "₮", isCrypto: true },
-  SOL: { symbol: "SOL", name: "Solana (SOL)", ratePerUSD: 0.0068, icon: "◎", isCrypto: true },
-  ETH: { symbol: "ETH", name: "Ethereum (ETH)", ratePerUSD: 0.00034, icon: "Ξ", isCrypto: true },
-  TON: { symbol: "TON", name: "Telegram Open Network (TON)", ratePerUSD: 0.18, icon: "💎", isCrypto: true },
-  BTC: { symbol: "BTC", name: "Bitcoin (BTC)", ratePerUSD: 0.000015, icon: "₿", isCrypto: true },
+export const CURRENCY_RATES: Record<string, CurrencyRate> = {
+  USDC: { symbol: "USDC", name: "USD Coin", ratePerUSD: 1, icon: "" },
 };
+
+// Alias for backwards compatibility
+export const CRYPTO_RATES = CURRENCY_RATES;
 
 export const ALL_PRODUCTS: Product[] = [
   // --- RANGOS VIP & EXCLUSIVOS (Top Ventas #1) ---
@@ -31,11 +27,10 @@ export const ALL_PRODUCTS: Product[] = [
       "Prefijo y color de chat [VIP] verde neón",
       "Acceso a cola prioritaria al servidor",
     ],
-    cryptoBonusAmount: "+250 Gemas Extra",
   },
   {
     id: "rank-mvp-plus",
-    name: "Rango MVP+ COIN-MASTER",
+    name: "Rango MVP+ MASTER",
     price: 14.99,
     originalPrice: 19.99,
     description: "El rango más popular del servidor. Multiplica tus ganancias y automatiza tu farmeo.",
@@ -46,14 +41,13 @@ export const ALL_PRODUCTS: Product[] = [
     isBestSeller: true,
     minecraftIcon: "crown",
     features: [
-      "Multiplicador x2.5 de Coins & XP permanente",
+      "Multiplicador x2.5 de Monedas & XP permanente",
       "Auto-Sell activable (/autosell) para farmeo AFK",
       "12 Hogares (/sethome) + /workbench portátil",
       "Comandos cosméticos /hat, /nick y /trails",
       "Kit MVP+ con Armadura de Diamante Protection IV",
       "Acceso a la Mina VIP y eventos mensuales",
     ],
-    cryptoBonusAmount: "+1,200 Gemas Extra",
   },
   {
     id: "rank-netherite-god",
@@ -63,7 +57,7 @@ export const ALL_PRODUCTS: Product[] = [
     description: "El estatus supremo indiscutible. Poder total, ventajas ilimitadas y máxima jerarquía.",
     category: "ranks",
     rarity: "mythic",
-    badge: "MÍTICO WEB3 👑",
+    badge: "MÍTICO SUPREMO 👑",
     badgeColor: "bg-purple-500/20 text-purple-400 border-purple-500/30",
     minecraftIcon: "helmet",
     features: [
@@ -74,7 +68,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Llave Cósmica Semanal de regalo automática",
       "Rol Discord Verificado [NETHER GOD] + Chat Privado Staff",
     ],
-    cryptoBonusAmount: "+3,500 Gemas + Tag Animado",
   },
 
   // --- LLAVES & CRATES MISTERIOSAS (Top Ventas #2) ---
@@ -96,7 +89,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Probabilidad de obtener Rango VIP+ permanente",
       "Partículas de apertura personalizadas",
     ],
-    cryptoBonusAmount: "+1 Llave Extra al pagar con Crypto",
   },
   {
     id: "crate-spawner-keys",
@@ -114,7 +106,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Drops posibles: Golem, Blaze, Creeper, Enderman, Guardian",
       "Incluye 50,000 Monedas de economía in-game",
     ],
-    cryptoBonusAmount: "+2 Llaves Extra",
   },
   {
     id: "crate-nether-supreme",
@@ -128,11 +119,10 @@ export const ALL_PRODUCTS: Product[] = [
     minecraftIcon: "crate",
     features: [
       "Set Netherite Full Custom Enchanted (Protection V, Mending)",
-      "Espada 'Cripto-Scythe' con Daño Crítico +35%",
+      "Espada 'Cósmica' con Daño Crítico +35%",
       "Tag Holográfico de Nombre [SUPREMO] animado",
       "100,000 XP pura embotellada",
     ],
-    cryptoBonusAmount: "+2,000 Gemas Extra",
   },
 
   // --- SPAWNERS & GRINDING (Top Ventas #3) ---
@@ -152,9 +142,8 @@ export const ALL_PRODUCTS: Product[] = [
       "2x Spawners físicos de Iron Golem apilables",
       "Tasa de spawn acelerada +20% en tu isla/claim",
       "Compatibilidad total con tolvas y filtros de items",
-      "Farmeo pasivo millonario garantizado",
+      "Farmeo pasivo garantizado",
     ],
-    cryptoBonusAmount: "+1 Spawner de Bruja gratis",
   },
   {
     id: "spawner-elemental-pack",
@@ -173,7 +162,6 @@ export const ALL_PRODUCTS: Product[] = [
       "1x Spawner de Creeper (Pólvora masiva para PvP/TNT)",
       "Stackeo automático activado",
     ],
-    cryptoBonusAmount: "+800 Gemas de Red",
   },
 
   // --- BOOSTERS & PASES DE BATALLA (Top Ventas #4) ---
@@ -191,14 +179,13 @@ export const ALL_PRODUCTS: Product[] = [
     features: [
       "Desbloqueo inmediato de la rama Premium",
       "50 Niveles con skins exclusivas, mascotas y títulos",
-      "Recompensas en criptomonedas ficticias del servidor",
+      "Recompensas en monedas y gemas del servidor",
       "Emotes y bailes personalizados para el lobby",
     ],
-    cryptoBonusAmount: "+5 Niveles saltados gratis",
   },
   {
     id: "booster-global-xp-coins",
-    name: "Booster Global x3 XP & Coins (4 Horas)",
+    name: "Booster Global x3 XP & Monedas (4 Horas)",
     price: 5.99,
     description: "Activa un multiplicador x3 para todos los jugadores del servidor. Tu nombre saldrá en el anuncio global.",
     category: "boosters",
@@ -211,7 +198,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Mensaje de agradecimiento global con tu skin en chat",
       "Te otorga el 20% del total de monedas generadas por la comunidad",
     ],
-    cryptoBonusAmount: "+1 Hora Adicional",
   },
 
   // --- COSMÉTICOS & CAPAS (Top Ventas #5) ---
@@ -222,7 +208,7 @@ export const ALL_PRODUCTS: Product[] = [
     description: "Capa con física de movimiento y textura animada de galaxia oscura. Visible para todos los usuarios.",
     category: "cosmetics",
     rarity: "legendary",
-    badge: "EXCLUSIVO WEB3 🌌",
+    badge: "EXCLUSIVO VIP 🌌",
     badgeColor: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
     minecraftIcon: "wings",
     features: [
@@ -231,11 +217,10 @@ export const ALL_PRODUCTS: Product[] = [
       "Compatible con clientes Lunar, Badlion, Feather y Vanilla",
       "Efecto de sonido personalizado al equipar",
     ],
-    cryptoBonusAmount: "+Aura de Estrellas",
   },
   {
-    id: "cosmetic-crypto-aura",
-    name: "Aura de Partículas Cripto-Diamante",
+    id: "cosmetic-diamond-aura",
+    name: "Aura de Partículas Diamante Estelar",
     price: 3.99,
     description: "Efecto místico que hace orbitar diamantes, runas púrpuras y orbes de experiencia a tu alrededor.",
     category: "cosmetics",
@@ -248,7 +233,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Rastro de polvo de redstone y runas al caminar",
       "Personalizable mediante menú /auras",
     ],
-    cryptoBonusAmount: "+Color Oro Exclusivo",
   },
 
   // --- PACKS DE GEMAS & MONEDAS (Top Ventas #6) ---
@@ -268,7 +252,6 @@ export const ALL_PRODUCTS: Product[] = [
       "Comprar items en el Black Market del Spawn",
       "Canjeable por llaves y boosters dentro del juego",
     ],
-    cryptoBonusAmount: "+1,000 Gemas Bonus en Crypto",
   },
   {
     id: "coins-pack-15000",
@@ -284,10 +267,9 @@ export const ALL_PRODUCTS: Product[] = [
     minecraftIcon: "gem",
     features: [
       "15,000 Gemas Premium acreditadas al instante",
-      "Tag especial en chat [BALLER] o [CRYPTO-WHALE]",
-      "Acceso al Discord Secreto de Inversores / Top Donators",
+      "Tag especial en chat [BALLER] o [TITAN]",
+      "Acceso al Discord Secreto de Top Donators",
     ],
-    cryptoBonusAmount: "+3,500 Gemas Adicionales",
   },
 ];
 
@@ -303,11 +285,10 @@ export const TEMPORARY_PRODUCTS: Product[] = ALL_PRODUCTS.filter(
 export const RECENT_PURCHASES: RecentPurchase[] = [
   {
     id: "1",
-    username: "Satoshi_Craft",
+    username: "Alex_Builder",
     productName: "Rango NETHERITE GOD",
     timestamp: "Hace 2 min",
-    cryptoPaid: "0.20 SOL",
-    avatarUrl: "https://mc-heads.net/avatar/Satoshi/60",
+    avatarUrl: "https://mc-heads.net/avatar/Alex/60",
     rarity: "mythic",
   },
   {
@@ -315,7 +296,6 @@ export const RECENT_PURCHASES: RecentPurchase[] = [
     username: "AlexGamer99",
     productName: "Pack x5 Llaves Cósmicas",
     timestamp: "Hace 6 min",
-    cryptoPaid: "6.99 USDT",
     avatarUrl: "https://mc-heads.net/avatar/Alex/60",
     rarity: "epic",
   },
@@ -324,16 +304,14 @@ export const RECENT_PURCHASES: RecentPurchase[] = [
     username: "ElRubiusFan",
     productName: "Spawner de Gólems (x2)",
     timestamp: "Hace 14 min",
-    cryptoPaid: "12.99 USDT",
     avatarUrl: "https://mc-heads.net/avatar/Rubius/60",
     rarity: "legendary",
   },
   {
     id: "4",
-    username: "CryptoMiner_MC",
-    productName: "Rango MVP+ COIN-MASTER",
+    username: "DiamondMiner_MC",
+    productName: "Rango MVP+ MASTER",
     timestamp: "Hace 28 min",
-    cryptoPaid: "0.10 SOL",
     avatarUrl: "https://mc-heads.net/avatar/Notch/60",
     rarity: "legendary",
   },
@@ -342,16 +320,15 @@ export const RECENT_PURCHASES: RecentPurchase[] = [
     username: "Luna_Valkyrie",
     productName: "Capa Animada Dragón Void",
     timestamp: "Hace 45 min",
-    cryptoPaid: "36.1 TON",
     avatarUrl: "https://mc-heads.net/avatar/Luna/60",
     rarity: "legendary",
   },
 ];
 
 export const DONOR_OF_THE_MONTH: DonorOfTheMonth = {
-  username: "Satoshi_Craft",
-  avatarUrl: "https://mc-heads.net/avatar/Satoshi/100",
-  message: "¡Aportando a la economía Web3 de CraftNetwork! 🚀",
-  totalDonated: "0.85 SOL ($125 USD)",
+  username: "Alex_Builder",
+  avatarUrl: "https://mc-heads.net/avatar/Alex/100",
+  message: "¡Aportando a la economía y crecimiento de CraftNetwork! 🚀",
+  totalDonated: "125 USDC",
   rankBadge: "NETHERITE GOD",
 };

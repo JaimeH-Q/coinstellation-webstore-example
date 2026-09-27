@@ -12,7 +12,7 @@ interface CrateSimulatorModalProps {
 
 const POSSIBLE_REWARDS = [
   { name: "Armadura Netherite Protection V", tier: "MÍTICO", color: "text-rose-400 border-rose-500/50 bg-rose-950/40", icon: "👑" },
-  { name: "Espada 'Cripto-Scythe' Filo VI", tier: "LEGENDARIO", color: "text-amber-400 border-amber-500/50 bg-amber-950/40", icon: "⚡" },
+  { name: "Espada 'Cósmica' Filo VI", tier: "LEGENDARIO", color: "text-amber-400 border-amber-500/50 bg-amber-950/40", icon: "⚡" },
   { name: "Spawner de Iron Golem x2", tier: "LEGENDARIO", color: "text-amber-400 border-amber-500/50 bg-amber-950/40", icon: "🤖" },
   { name: "10,000 Gemas de Red + /fly 30d", tier: "ÉPICO", color: "text-purple-400 border-purple-500/50 bg-purple-950/40", icon: "💎" },
   { name: "Pack 64 Manzanas de Notch (GOD)", tier: "RARO", color: "text-cyan-400 border-cyan-500/50 bg-cyan-950/40", icon: "🍏" },

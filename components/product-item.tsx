@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Info, ShoppingCart, Sparkles, Check, Package, Zap } from "lucide-react";
+import { Info, ShoppingCart, Check, Package } from "lucide-react";
 import { Product } from "@/types/webstore";
 import { MinecraftItemBadge } from "./minecraft-item-badge";
-import { CRYPTO_RATES } from "@/data/mock-data";
+import { CURRENCY_RATES } from "@/data/mock-data";
 
 interface ProductItemProps {
   product: Product;
@@ -16,17 +16,15 @@ interface ProductItemProps {
 
 export function ProductItem({
   product,
-  selectedCurrency = "USD",
+  selectedCurrency = "USDC",
   onOpenInfo,
   onAddToCart,
   onOpenCrateDemo,
 }: ProductItemProps) {
-  const rateInfo = CRYPTO_RATES[selectedCurrency] || CRYPTO_RATES.USD;
-  const convertedPrice = (product.price * rateInfo.ratePerUSD);
+  const rateInfo = CURRENCY_RATES[selectedCurrency] || CURRENCY_RATES.USDC;
+  const convertedPrice = product.price * (rateInfo?.ratePerUSD ?? 1);
   
-  const formattedPrice = rateInfo.isCrypto
-    ? `${convertedPrice.toFixed(rateInfo.symbol === "BTC" ? 6 : rateInfo.symbol === "ETH" ? 5 : rateInfo.symbol === "SOL" ? 3 : 2)} ${rateInfo.symbol}`
-    : `${rateInfo.icon}${convertedPrice.toFixed(2)} ${rateInfo.symbol}`;
+  const formattedPrice = `${convertedPrice.toFixed(2)} USDC`;
 
   const isCrate = product.category === "crates" || product.minecraftIcon === "crate" || product.minecraftIcon === "key";
 
@@ -80,14 +78,6 @@ export function ProductItem({
               )}
             </div>
           )}
-
-          {/* Crypto Bonus Tag */}
-          {product.cryptoBonusAmount && (
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-purple-300">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span>Crypto Bonus: {product.cryptoBonusAmount}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -96,7 +86,7 @@ export function ProductItem({
         <div className="flex flex-col sm:items-end">
           {product.originalPrice && (
             <span className="text-[11px] text-zinc-500 line-through">
-              ${product.originalPrice.toFixed(2)} USD
+              {product.originalPrice.toFixed(2)} USDC
             </span>
           )}
           <span className="text-base sm:text-lg font-black text-emerald-400 tracking-tight">

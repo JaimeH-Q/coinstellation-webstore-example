@@ -1,5 +1,5 @@
 import React from "react";
-import { Info, ShieldCheck, Zap, Wallet, CheckCircle2 } from "lucide-react";
+import { Info, ShieldCheck, Zap, Link2, CheckCircle2 } from "lucide-react";
 
 interface AboutSectionProps {
   id?: string;
@@ -51,15 +51,15 @@ export function AboutSection({
           </div>
         </div>
 
-        {/* Card 2: Pagos Seguros */}
+        {/* Card 2: Pagos Seguros en USDC */}
         <div className="rounded-2xl border border-white/5 bg-white/5 p-4 flex flex-col justify-between">
           <div>
             <h3 className="mb-2 flex items-center gap-2 text-xs sm:text-sm font-bold text-purple-300">
-              <Wallet className="h-4 w-4 text-purple-400" />
-              <span>Pagos Seguros</span>
+              <Link2 className="h-4 w-4 text-purple-400" />
+              <span>Links de Pago Seguros</span>
             </h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Aceptamos pagos directos con tarjetas, pasarelas locales y criptomonedas (Solana, USDT, TON, Ethereum) con procesamiento automático.
+              Genera tu enlace de pago seguro en USDC con procesamiento automático y confirmación inmediata.
             </p>
           </div>
           <div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-purple-400">

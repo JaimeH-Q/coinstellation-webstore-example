@@ -21,13 +21,13 @@ import { startCheckout } from "@/lib/checkout-client";
 import { isValidPlayerName } from "@/lib/player-name";
 
 export default function WebstorePage() {
-  const [currency, setCurrency] = useState("USD");
+  const [currency] = useState("USDC");
   const [username, setUsername] = useState("Notch");
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "demo-1",
       productId: "rank-mvp-plus",
-      name: "Rango MVP+ COIN-MASTER",
+      name: "Rango MVP+ MASTER",
       price: 14.99,
       rarity: "legendary",
     },
@@ -42,7 +42,7 @@ export default function WebstorePage() {
   // Player Profile Modal State
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
-  // Stellar / Coinstellation Payment Modal State
+  // Payment Modal State
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -158,7 +158,7 @@ export default function WebstorePage() {
       setPaymentDetails(payment);
       setIsPaymentModalOpen(true);
     } catch (err) {
-      setCheckoutError(err instanceof Error ? err.message : "Error al procesar el pago con Coinstellation.");
+      setCheckoutError(err instanceof Error ? err.message : "Error al procesar el pago.");
     } finally {
       setIsCheckingOut(false);
     }
@@ -192,10 +192,9 @@ export default function WebstorePage() {
         </div>
       )}
 
-      {/* Topbar: Nav, Multi-Currency Selector, Player Skin Profile */}
+      {/* Topbar: Nav, USDC Badge, Player Skin Profile */}
       <Topbar
         selectedCurrency={currency}
-        onCurrencyChange={setCurrency}
         username={username}
         onLoginClick={() => setIsPlayerModalOpen(true)}
       />
@@ -298,10 +297,10 @@ export default function WebstorePage() {
               onAddToCart={handleAddToCart}
             />
 
-            {/* 6. GEMAS & TOKENS */}
+            {/* 6. GEMAS & MONEDAS */}
             <ProductSection
               id="coins"
-              title="Gemas de Red & Tokens Web3"
+              title="Gemas & Monedas de Red"
               subtitle="Moneda para la casa de subastas in-game y Black Market"
               icon={<Gem className="h-5 w-5 text-teal-400" />}
               products={coinProducts}
@@ -352,7 +351,7 @@ export default function WebstorePage() {
         onSavePlayer={handleSavePlayer}
       />
 
-      {/* Modal de Pago Stellar / Coinstellation (key: se reinicia con cada pago) */}
+      {/* Modal de Pago (key: se reinicia con cada pago) */}
       <PaymentModal
         key={paymentDetails?.id ?? "sin-pago"}
         isOpen={isPaymentModalOpen}

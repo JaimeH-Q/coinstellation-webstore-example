@@ -43,9 +43,8 @@ export function NavigationMenu({
     },
     {
       id: "coins",
-      label: "Gemas de Red & Tokens",
+      label: "Gemas & Monedas de Red",
       icon: <Gem className="h-4 w-4 text-teal-400" />,
-      badge: "CRYPTO",
     },
     {
       id: "about-section",

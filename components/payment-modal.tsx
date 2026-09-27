@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Loader2,
-  Wallet,
+  Link2,
   CheckCircle2,
   XCircle,
   ArrowRight,
@@ -154,9 +154,9 @@ export function PaymentModal({
               <CheckCircle2 className="h-10 w-10" />
             </div>
 
-            <h3 className="text-xl font-black text-white">¡Pago recibido!</h3>
+            <h3 className="text-xl font-black text-white">¡Pago Completado con Éxito!</h3>
             <p className="mt-1.5 text-xs text-[#8b949e] max-w-sm">
-              Coinstellation confirmó el pago en la red Stellar.
+              El pago fue confirmado y registrado correctamente.
               {playerName ? ` ${playerName} recibirá la compra en el servidor en unos instantes.` : ""}
             </p>
 
@@ -168,7 +168,7 @@ export function PaymentModal({
                 </div>
               )}
               <div className="flex justify-between items-center text-xs py-1">
-                <span className="text-[#8b949e]">Total pagado:</span>
+                <span className="text-[#8b949e]">Total Abonado:</span>
                 <span className="text-base font-extrabold text-[#2ecc71]">
                   {payment.amount} {payment.asset}
                 </span>
@@ -227,10 +227,10 @@ export function PaymentModal({
           <>
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2b7fff]/15 text-[#2b7fff]">
-                <Wallet className="h-4 w-4" />
+                <Link2 className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Pago con Stellar ({payment.asset})</h3>
+                <h3 className="text-lg font-bold text-white">Link de Pago Generado ({payment.asset})</h3>
                 {(productName || playerName) && (
                   <p className="text-xs text-[#8b949e]">
                     {productName}
@@ -241,7 +241,7 @@ export function PaymentModal({
             </div>
 
             <div className="my-3 rounded-xl border border-[#2d3139] bg-[#141518] p-3 text-center">
-              <p className="text-xs font-medium text-[#8b949e] uppercase tracking-wider">Monto a transferir</p>
+              <p className="text-xs font-medium text-[#8b949e] uppercase tracking-wider">Total a Pagar</p>
               <p className="text-2xl sm:text-3xl font-black text-[#2ecc71] mt-0.5">
                 {payment.amount} {payment.asset}
               </p>
@@ -254,7 +254,7 @@ export function PaymentModal({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={payment.qr}
-                    alt="Código QR de pago Stellar"
+                    alt="Código QR de pago"
                     className="h-44 w-44 rounded-lg bg-white p-2 shadow-inner object-contain"
                   />
                 ) : (
@@ -265,7 +265,7 @@ export function PaymentModal({
               </div>
               <span className="mt-1.5 text-[11px] text-[#8b949e] flex items-center gap-1.5">
                 <QrCode className="h-3.5 w-3.5 text-[#2b7fff]" />
-                Escanea con tu wallet Stellar (Lobstr, Freighter, xBull…)
+                Escanea con tu aplicación de pagos (Lobstr, Freighter, xBull…)
               </span>
             </div>
 
@@ -276,9 +276,9 @@ export function PaymentModal({
                   className="cursor-pointer text-[#2b7fff] hover:underline flex items-center gap-1 font-medium"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Abrir en mi wallet</span>
+                  <span>Abrir link de pago</span>
                 </a>
-                {renderCopyButton(payment.uri, "uri", "Copiar enlace de pago")}
+                {renderCopyButton(payment.uri, "uri", "Copiar link de pago")}
               </div>
             )}
 
@@ -289,12 +289,12 @@ export function PaymentModal({
                 <span>¿Pagas a mano? Usa exactamente estos datos</span>
               </div>
               <p className="mt-1 text-[11px] text-amber-300/80">
-                Sin el memo, el pago no se puede asociar a tu compra y no se entrega.
+                Sin la referencia, el pago no se puede asociar a tu compra y no se entrega.
               </p>
               <div className="mt-2 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-amber-300/70">Memo (ID) — obligatorio</p>
+                    <p className="text-[10px] uppercase tracking-wider text-amber-300/70">Referencia de pago (memo) — obligatoria</p>
                     <p className="text-sm text-amber-100 font-mono font-bold break-all">{payment.memo}</p>
                   </div>
                   {renderCopyButton(payment.memo, "memo")}
@@ -329,7 +329,7 @@ export function PaymentModal({
             <div className="mt-3 flex items-center justify-between border-t border-[#2d3139] pt-2.5 text-[11px] text-[#8b949e]">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5 text-[#2ecc71]" />
-                Pasarela Coinstellation
+                Pasarela de Pago Segura
               </span>
               <button
                 type="button"

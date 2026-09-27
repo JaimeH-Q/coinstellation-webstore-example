@@ -1,5 +1,5 @@
 import React from "react";
-import { History, CheckCircle2, Zap } from "lucide-react";
+import { History, CheckCircle2 } from "lucide-react";
 import { RecentPurchase } from "@/types/webstore";
 
 interface RecentPurchasesProps {
@@ -51,13 +51,6 @@ export function RecentPurchases({ purchases = [] }: RecentPurchasesProps) {
                   </div>
                 </div>
               </div>
-
-              {purchase.cryptoPaid && (
-                <div className="shrink-0 flex items-center gap-1 rounded-md bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-bold text-purple-300 border border-purple-500/20">
-                  <Zap className="h-2.5 w-2.5 text-amber-400" />
-                  <span>{purchase.cryptoPaid}</span>
-                </div>
-              )}
             </li>
           );
         })}

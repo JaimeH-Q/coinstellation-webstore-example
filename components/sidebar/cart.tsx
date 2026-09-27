@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { ShoppingBasket, Trash2, Zap, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { ShoppingBasket, Trash2, Link2, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 import { CartItem } from "@/types/webstore";
-import { CRYPTO_RATES } from "@/data/mock-data";
+import { CURRENCY_RATES } from "@/data/mock-data";
 
 interface CartProps {
   items: CartItem[];
@@ -16,19 +16,17 @@ interface CartProps {
 
 export function Cart({
   items = [],
-  selectedCurrency = "USD",
+  selectedCurrency = "USDC",
   username = "Invitado",
   onRemoveItem,
   onCheckout,
   isCheckingOut = false,
 }: CartProps) {
-  const rateInfo = CRYPTO_RATES[selectedCurrency] || CRYPTO_RATES.USD;
+  const rateInfo = CURRENCY_RATES[selectedCurrency] || CURRENCY_RATES.USDC;
   const totalUSD = items.reduce((sum, item) => sum + item.price, 0);
-  const totalConverted = totalUSD * rateInfo.ratePerUSD;
+  const totalConverted = totalUSD * (rateInfo?.ratePerUSD ?? 1);
   
-  const formattedTotal = rateInfo.isCrypto
-    ? `${totalConverted.toFixed(rateInfo.symbol === "BTC" ? 6 : rateInfo.symbol === "ETH" ? 5 : rateInfo.symbol === "SOL" ? 3 : 2)} ${rateInfo.symbol}`
-    : `${rateInfo.icon}${totalConverted.toFixed(2)} ${rateInfo.symbol}`;
+  const formattedTotal = `${totalConverted.toFixed(2)} USDC`;
 
   const isEmpty = items.length === 0;
 
@@ -62,10 +60,8 @@ export function Cart({
       ) : (
         <div className="flex max-h-56 flex-col gap-2 overflow-y-auto pr-1">
           {items.map((item, index) => {
-            const itemPrice = item.price * rateInfo.ratePerUSD;
-            const formattedItemPrice = rateInfo.isCrypto
-              ? `${itemPrice.toFixed(rateInfo.symbol === "BTC" ? 6 : rateInfo.symbol === "ETH" ? 5 : rateInfo.symbol === "SOL" ? 3 : 2)} ${rateInfo.symbol}`
-              : `${rateInfo.icon}${itemPrice.toFixed(2)}`;
+            const itemPrice = item.price * (rateInfo?.ratePerUSD ?? 1);
+            const formattedItemPrice = `${itemPrice.toFixed(2)} USDC`;
 
             return (
               <div
@@ -102,7 +98,7 @@ export function Cart({
         </div>
       </div>
 
-      {/* Checkout Button */}
+      {/* Checkout Button - Generar Link de Pago */}
       <button
         type="button"
         disabled={isEmpty || isCheckingOut}
@@ -112,12 +108,12 @@ export function Cart({
         {isCheckingOut ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Generando Pago...</span>
+            <span>Generando link de pago...</span>
           </>
         ) : (
           <>
-            <Zap className="h-4 w-4 text-amber-300" />
-            <span>Pagar con Tarjeta o Web3</span>
+            <Link2 className="h-4 w-4 text-white" />
+            <span>Generar link de pago</span>
             <ArrowRight className="h-4 w-4" />
           </>
         )}

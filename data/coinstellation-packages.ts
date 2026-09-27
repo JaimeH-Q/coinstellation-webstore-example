@@ -36,7 +36,7 @@ export const COINSTELLATION_PACKAGE_IDS: Record<string, string> = {
 
   // Cosméticos
   "cosmetic-dragon-cape": "",
-  "cosmetic-crypto-aura": "",
+  "cosmetic-diamond-aura": "",
 
   // Gemas
   "coins-pack-5000": "",
