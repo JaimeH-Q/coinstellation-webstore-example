@@ -136,10 +136,19 @@ export default function WebstorePage() {
 
     try {
       const orderNumber = Math.floor(1000 + Math.random() * 9000);
+      const primaryItem = cartItems[0]?.name || "Ítems";
+      const description = `Orden #${orderNumber} de ${username} (${cartItems.length} ítems - ${primaryItem})`;
+      const packageId = primaryItem.toLowerCase().includes("vip")
+        ? "package-basic"
+        : primaryItem.toLowerCase().includes("titan")
+        ? "package-pro"
+        : "package-enterprise";
+
       const res = await createPayment({
         amount: total.toFixed(2),
         currency: "XLM",
-        description: `Orden #${orderNumber} de ${username} (${cartItems.length} ítems)`,
+        description,
+        packageId,
       });
 
       if (res && res.payment) {
@@ -151,14 +160,7 @@ export default function WebstorePage() {
       }
     } catch (err: any) {
       console.warn("API de pagos Coinstellation:", err);
-      // Fallback modal demo o alerta informativa
-      const formattedTotal = rateInfo.isCrypto
-        ? `${convertedTotal.toFixed(rateInfo.symbol === "BTC" ? 6 : rateInfo.symbol === "ETH" ? 5 : rateInfo.symbol === "SOL" ? 3 : 2)} ${rateInfo.symbol}`
-        : `${rateInfo.icon}${convertedTotal.toFixed(2)} ${rateInfo.symbol}`;
-
-      alert(
-        `⚡ Pasarela de pago segura para ${username}\n\nTotal: ${formattedTotal}\nMétodo: ${rateInfo.name}\nEntrega: Segundos tras la confirmación de la red.`
-      );
+      setCheckoutError(err.message || "Error al procesar el pago con Coinstellation");
     } finally {
       setIsCheckingOut(false);
     }
@@ -310,6 +312,7 @@ export default function WebstorePage() {
             username={username}
             onRemoveCartItem={handleRemoveFromCart}
             onCheckout={handleCheckout}
+            isCheckingOut={isCheckingOut}
           />
         </div>
       </div>
@@ -346,6 +349,9 @@ export default function WebstorePage() {
         currency="XLM"
         description="Orden de compra en CraftNetwork"
         onClose={() => setIsPaymentModalOpen(false)}
+        onPaymentSuccess={() => {
+          setCartItems([]);
+        }}
       />
 
       {/* Footer */}

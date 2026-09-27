@@ -12,14 +12,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
 
-    // Simulación / Mock para desarrollo local
+    // Simulación / Mock para desarrollo local desconectado
     if (ENABLE_MOCK_PAYMENT || body.mock === true) {
       const memo = Date.now().toString();
       const mockUri = `web+stellar:pay?destination=${encodeURIComponent(
         body.destination || DEFAULT_DESTINATION_WALLET
       )}&amount=${body.amount ?? "24.99"}&asset_code=${
         body.currency || DEFAULT_CURRENCY
-      }&memo=${memo}&memo_type=MEMO_TEXT`;
+      }&memo=${memo}&memo_type=MEMO_ID`;
 
       const mockResponse: PaymentApiResponse = {
         payment: {
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       amount: String(body.amount ?? "1.00"),
       currency: body.currency || DEFAULT_CURRENCY,
       description: body.description || "Orden de compra en Webstore",
+      packageId: body.packageId,
     };
 
     // Validar que se haya configurado una URL
@@ -55,14 +56,14 @@ export async function POST(request: Request) {
         {
           error: "URL_NOT_CONFIGURED",
           message:
-            "Aún no has configurado la URL de tu API externa. Por favor actualiza EXTERNAL_PAYMENTS_API_URL en lib/payment-config.ts o COINSTELLATION_API_URL en .env.local.",
+            "Aún no has configurado la URL de Coinstellation. Por favor actualiza COINSTELLATION_API_URL en .env.local (por ejemplo http://localhost:3000).",
           targetEndpoint,
         },
         { status: 400 }
       );
     }
 
-    // Llamada externa al endpoint de pagos
+    // Llamada al endpoint de pagos del sistema principal Coinstellation
     const externalResponse = await fetch(targetEndpoint, {
       method: "POST",
       headers: {
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
           message:
             responseData?.message ||
             responseData?.error ||
-            `Error al comunicarse con la API externa (${externalResponse.status}).`,
+            `Error al comunicarse con Coinstellation (${externalResponse.status}).`,
           details: responseData,
         },
         { status: externalResponse.status }
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
         error: "INTERNAL_SERVER_ERROR",
         message:
           error?.message ||
-          "Error al procesar la solicitud de pago hacia el endpoint externo.",
+          "Error al procesar la solicitud de pago hacia Coinstellation.",
       },
       { status: 500 }
     );

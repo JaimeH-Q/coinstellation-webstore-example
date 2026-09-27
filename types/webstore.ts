@@ -73,6 +73,7 @@ export interface PaymentRequestPayload {
   amount: string;
   currency: string;
   description: string;
+  packageId?: string;
 }
 
 export interface PaymentDetails {
@@ -86,4 +87,5 @@ export interface PaymentApiResponse {
   payment: PaymentDetails;
   error?: string;
   message?: string;
+  record?: any;
 }
