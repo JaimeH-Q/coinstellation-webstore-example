@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, ShoppingCart, Check, Zap, Sparkles, Shield } from "lucide-react";
+import { X, ShoppingCart, Check, Shield } from "lucide-react";
 import { Product } from "@/types/webstore";
 import { MinecraftItemBadge } from "./minecraft-item-badge";
-import { CRYPTO_RATES } from "@/data/mock-data";
+import { CURRENCY_RATES } from "@/data/mock-data";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ interface ProductModalProps {
 export function ProductModal({
   isOpen,
   product,
-  selectedCurrency = "USD",
+  selectedCurrency = "USDC",
   onClose,
   onAddToCart,
 }: ProductModalProps) {
@@ -33,11 +33,9 @@ export function ProductModal({
 
   if (!isOpen || !product) return null;
 
-  const rateInfo = CRYPTO_RATES[selectedCurrency] || CRYPTO_RATES.USD;
-  const convertedPrice = product.price * rateInfo.ratePerUSD;
-  const formattedPrice = rateInfo.isCrypto
-    ? `${convertedPrice.toFixed(rateInfo.symbol === "BTC" ? 6 : rateInfo.symbol === "ETH" ? 5 : rateInfo.symbol === "SOL" ? 3 : 2)} ${rateInfo.symbol}`
-    : `${rateInfo.icon}${convertedPrice.toFixed(2)} ${rateInfo.symbol}`;
+  const rateInfo = CURRENCY_RATES[selectedCurrency] || CURRENCY_RATES.USDC;
+  const convertedPrice = product.price * (rateInfo?.ratePerUSD ?? 1);
+  const formattedPrice = `${convertedPrice.toFixed(2)} USDC`;
 
   return (
     <div
@@ -108,17 +106,6 @@ export function ProductModal({
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {/* Crypto Perks Info Box */}
-        {product.cryptoBonusAmount && (
-          <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-purple-500/30 bg-purple-950/30 p-3.5 text-xs text-purple-200">
-            <Zap className="h-4 w-4 shrink-0 text-amber-400 animate-pulse" />
-            <div>
-              <strong className="text-white">Ventaja Web3 / Cripto:</strong>{" "}
-              {product.cryptoBonusAmount} al pagar con Solana, USDT o ETH.
-            </div>
           </div>
         )}
 
