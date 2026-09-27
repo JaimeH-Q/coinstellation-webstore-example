@@ -13,7 +13,7 @@ export type CategoryType =
 export interface Product {
   id: string;
   name: string;
-  price: number; // Base USD price
+  price: number; // Base USDC price
   currency?: string;
   description: string;
   features?: string[];
@@ -24,8 +24,6 @@ export interface Product {
   discountPercent?: number;
   minecraftIcon?: "sword" | "crown" | "crate" | "spawner" | "wings" | "booster" | "gem" | "helmet" | "key" | "dragon";
   isBestSeller?: boolean;
-  isCryptoBonus?: boolean;
-  cryptoBonusAmount?: string;
   originalPrice?: number;
 }
 
@@ -45,7 +43,6 @@ export interface RecentPurchase {
   username: string;
   productName: string;
   timestamp?: string;
-  cryptoPaid?: string;
   avatarUrl?: string;
   rarity?: RarityType;
 }
@@ -58,15 +55,17 @@ export interface DonorOfTheMonth {
   rankBadge?: string;
 }
 
-export type SupportedCurrency = "USD" | "EUR" | "ARS" | "USDT" | "SOL" | "ETH" | "TON" | "BTC" | "XLM";
+export type SupportedCurrency = "USDC";
 
-export interface CryptoRate {
+export interface CurrencyRate {
   symbol: SupportedCurrency;
   name: string;
   ratePerUSD: number;
   icon: string;
-  isCrypto: boolean;
 }
+
+// Alias for backwards compatibility
+export type CryptoRate = CurrencyRate;
 
 export interface PaymentRequestPayload {
   destination: string;
